@@ -17,9 +17,9 @@ type Offer struct {
 	ID          int     `json:"id"`
 	Title       string  `json:"title"`
 	Description string  `json:"description"`
+	ImageSetID  int     `json:"image_set_id"`
 	ComunityID  int     `json:"comunity_id"`
 	UserID      int     `json:"user_id"`
-	
 }
 
 
@@ -57,14 +57,14 @@ func SetUpDB(db *sql.DB) {
 	
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS images (
 				id INT AUTO_INCREMENT PRIMARY KEY,
-				image_path TEXT
+				image_path TEXT NOT NULL
 			)`)
 	if err != nil { log.Fatal("Error creating image Table: ", err) }
 
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS image_sets (
 				id INT AUTO_INCREMENT PRIMARY KEY,
-				set_id INT,
-				image_id INT, 
+				set_id INT NOT NULL,
+				image_id INT NOT NULL,
 				FOREIGN KEY (image_id) REFERENCES images(id))`)
 	if err != nil { log.Fatal("Error creating image_sets table: ", err) }
 
@@ -74,7 +74,7 @@ func SetUpDB(db *sql.DB) {
 				password_hash TEXT,
 				password_salt TEXT,
 				created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-				profile_image_id INT DEFAULT NULL REFERENCES images(id)
+				profile_image_id INT DEFAULT -1 REFERENCES images(id)
 			)`)
 	if err != nil { log.Fatal("Error creating users table: ", err) }
 	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS comunities (
@@ -82,7 +82,7 @@ func SetUpDB(db *sql.DB) {
 				name TEXT,
 				location BIGINT,
 				description TEXT,
-				image_set_id INT DEFAULT NULL,
+				image_set_id INT DEFAULT -1,
 				FOREIGN KEY (image_set_id) REFERENCES image_sets(id)
 			)`)
 	if err != nil { log.Fatal("Error creating comunities table: ", err) }
@@ -90,11 +90,11 @@ func SetUpDB(db *sql.DB) {
 				id INT AUTO_INCREMENT PRIMARY KEY,
 				title TEXT,
 				description TEXT,
-				image_set_id INT DEFAULT NULL,
+				image_set_id INT DEFAULT -1,
 				FOREIGN KEY (image_set_id) REFERENCES image_sets(id),
-				user_id INT,
+				user_id INT NOT NULL,
 				FOREIGN KEY (user_id) REFERENCES users(id),
-				comunity_id INT, 
+				comunity_id INT NOT NULL,
 				FOREIGN KEY (comunity_id) REFERENCES comunities(id)
 				)`)
 	if err != nil { log.Fatal("Error creating offers table: ", err) }
@@ -109,10 +109,10 @@ func SetUpDB(db *sql.DB) {
 	
 }
 
-func GetOffer(db *sql.DB) gin.HandlerFunc {
+func GetOfferByCommunityId(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		comunity_id := c.Param("comunity_id")
-		rows, err := db.Query(`SELECT id, title, description, user_id, comunity_id
+		rows, err := db.Query(`SELECT id, title, description, user_id, comunity_id, image_set_id
 					FROM offers WHERE comunity_id = ?`, comunity_id)
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -136,14 +136,36 @@ func GetOffer(db *sql.DB) gin.HandlerFunc {
 func CreateOffer(db *sql.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var newOffer Offer
-		err := c.BindJSON(&newOffer)
+		form, err := c.MultipartForm()
+		if err != nil { 
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()}) 
+		}
+		newOffer.UserID, err = strconv.Atoi(form.Value["user_id"][0])
+		if err != nil { 
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Please provide a valid user id"})
+		}
+		newOffer.ComunityID, err = strconv.Atoi(form.Value["comunity_id"][0])
+		if err != nil { 
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Please provide a valid comunity id"})
+		}
+		newOffer.Title = form.Value["title"][0]
+		newOffer.Description = form.Value["description"][0]
+		newOffer.ImageSetID, err = strconv.Atoi(form.Value["image_set_id"][0])
+		if err != nil { 
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Please provide a valid image set id"})
+		}
+		_, err = db.Exec(`INSERT INTO offers 
+				(title, description, user_id, comunity_id, image_set_id) VALUES (?, ?, ?, ?, ?)`,
+				newOffer.Title, newOffer.Description, newOffer.UserID,
+				newOffer.ComunityID, newOffer.ComunityID)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"SQL error": err.Error()})
 			return
 		}
-		_, err = db.Exec("INSERT INTO offers (title, description, user_id, comunity_id) VALUES (?, ?, ?, ?)", newOffer.Title, newOffer.Description, newOffer.UserID, newOffer.ComunityID)
+		result := db.QueryRow("SELECT LAST_INSERT_ID() FROM offers")
+		err = result.Scan(&newOffer.ID)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting last insert id"})
 			return
 		}
 		
@@ -211,6 +233,46 @@ func CreateImage(db *sql.DB) gin.HandlerFunc {
 			return
 		}
 		c.JSON(http.StatusCreated, gin.H{"image_id": img_id})
+	}
+}
+
+func createImageGroup(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		form, err := c.MultipartForm()
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
+		imageids := form.File["image_ids"]
+		res, err := db.Query("SELECT MAX(set_id) FROM image_sets")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		var set_id int
+		err = res.Scan(&set_id)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
+		set_id++
+		for _, imageid := range imageids {
+			res := db.QueryRow("SELECT id FROM images WHERE id = ?", imageid)
+			err := res.Scan()
+			if err != nil {
+				c.JSON(http.StatusInternalServerError,
+					gin.H{"error image not found": err.Error()})
+				return
+			}
+			_, err = db.Exec(`INSERT INTO image_sets 
+					(set_id, image_id) VALUES (?, ?)`,
+					set_id, imageid)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+				return
+			}
+			c.JSON(http.StatusCreated, gin.H{"set_id": set_id})
+		}
 	}
 }
 

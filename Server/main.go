@@ -16,7 +16,7 @@ func main() {
 	api.DropAllTables(db)
 	api.SetUpDB(db)
 	router := gin.Default()
-	router.GET("/offers:comunity_id", api.GetOffer(db))
+	router.GET("/offers:comunity_id", api.GetOfferByCommunityId(db))
 	router.POST("/offers", api.CreateOffer(db))
 	router.GET("/images:image_id", api.GetImageById(db))
 	router.POST("/images", api.CreateImage(db))
