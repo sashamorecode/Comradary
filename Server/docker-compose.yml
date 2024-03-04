@@ -5,8 +5,8 @@ services:
     environment:
       - MYSQL_ROOT_PASSWORD
     volumes:
-      - mysql:/var/lib/mysql
+      - comsql:/var/lib/comsql
     ports:
       - '127.0.0.1:3306:3306'
 volumes:
-  mysql:
+  comsql:

@@ -2,11 +2,10 @@ package api
 
 import (
 	"crypto/rand"
-	"crypto/sha512"
 	"log"
 	"path/filepath"
 	"strconv"
-
+	"golang.org/x/crypto/bcrypt"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -15,9 +14,8 @@ import (
 type User struct {
 	gorm.Model
 	UserName     string
-	Email        string
+	Email        string 	`gorm:"unique"`
 	PasswordHash string	
-	PasswordSalt string
 	Offers       []Offer    `gorm:"foreignKey:UserID"`
 	Requests     []Request  `gorm:"foreignKey:UserID"`
 	ProfilePhoto *Photo     `gorm:"foreignKey:UserID"`
@@ -77,7 +75,7 @@ func InsertTestData(db *gorm.DB) {
 		log.Fatal("Error creating community: ", result.Error)
 	}
 	// Create a User
-	user := User{UserName: "test", Email: "sas@gmail.com", PasswordHash: "test", PasswordSalt: "test"}
+	user := User{UserName: "test", Email: "sas@gmail.com", PasswordHash: "test" }
 	result = db.Create(&user)
 	if result.Error != nil {
 		log.Fatal("Error creating user: ", result.Error)
@@ -101,11 +99,7 @@ func ConnectDB() *gorm.DB {
 	if err != nil {
 		log.Fatal("Error connecting to the database: ", err)
 	}
-	log.Println("Droping all tables")
 	DropAllTables(db)
-	if err != nil {
-		log.Fatal("Error Dropping the tables: ", err)
-	}
 	err = db.AutoMigrate(&User{}, &Photo{}, &Offer{}, &Request{})
 	if err != nil {
 		log.Fatal("Error Migrating the database: ", err)
@@ -149,23 +143,19 @@ func CreateImages(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
-func HashPassword(password string) (string, string, error) {
-	var passwordSalt string
+func HashPassword(password string) (string, error) {
 	var passwordHash string
-	var sha512Hasher = sha512.New()
-	_, err := rand.Read([]byte(passwordSalt))
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		return "", "", err
+		return "", err
 	}
-	sha512Hasher.Write([]byte(password + passwordSalt))
-	passwordHash = string(sha512Hasher.Sum(nil))
-	return passwordHash, passwordSalt, nil
+	passwordHash = string(hash)
+	return passwordHash, nil
 }
 
-func CheckPassword(password string, passwordHash string, passwordSalt string) bool {
-	var sha512Hasher = sha512.New()
-	sha512Hasher.Write([]byte(password + passwordSalt))
-	return string(sha512Hasher.Sum(nil)) == passwordHash
+func CheckPassword(password string, hashedPassword string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(password))
+	return err == nil
 }
 
 func SignUp(db *gorm.DB) gin.HandlerFunc {
@@ -173,15 +163,18 @@ func SignUp(db *gorm.DB) gin.HandlerFunc {
 		var input SignUpInput
 		err := c.BindJSON(&input)
 		if err != nil {
+			log.Println("Error binding json: ", err)
+			log.Println("json: ", input)
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
-		passwordHash, passwordSalt, err := HashPassword(input.Password)
+		log.Printf("username: %s, email: %s, password: %s", input.UserName, input.Email, input.Password)
+		passwordHash, err := HashPassword(input.Password)
 		if err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
-		user := User{UserName: input.UserName, Email: input.Email, PasswordHash: passwordHash, PasswordSalt: passwordSalt}
+		user := User{UserName: input.UserName, Email: input.Email, PasswordHash: passwordHash}
 		result := db.Create(&user)
 		if result.Error != nil {
 			c.JSON(400, gin.H{"error": result.Error.Error()})
@@ -205,7 +198,7 @@ func SignIn(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(400, gin.H{"error": result.Error.Error()})
 			return
 		}
-		if !CheckPassword(input.Password, user.PasswordHash, user.PasswordSalt) {
+		if !CheckPassword(input.Password, user.PasswordHash) {
 			c.JSON(400, gin.H{"error": "incorrect password"})
 			return
 		}
@@ -264,15 +257,10 @@ func GetOffersByCommunityId(db *gorm.DB) gin.HandlerFunc {
 
 
 func DropAllTables(db *gorm.DB) {
-	tables, err := db.Migrator().GetTables()
+	log.Println("Droping all tables")
+	err := db.Migrator().DropTable(&User{}, &Photo{}, &Offer{}, &Request{}, &Community{})
 	if err != nil {
-		log.Println("Error getting tables: ", err)
-	}
-	for _, table := range tables {
-		err = db.Migrator().DropTable(table)
-		if err != nil {
-			log.Println("Error dropping table: ", err)
-		}
+		log.Fatal("Error Dropping the tables: ", err)
 	}
 }
 
