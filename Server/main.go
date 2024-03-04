@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/sashamorecode/comradary/server/api"
+	"github.com/sashamorecode/Comradery/Server/api"
 	"github.com/gin-gonic/gin"
 )
 
@@ -12,16 +12,8 @@ import (
 //example get user id=1: curl -X GET '127.0.0.1:8000/users1'
 func main() {
 	db := api.ConnectDB()
-	defer db.Close()
-	api.DropAllTables(db)
-	api.SetUpDB(db)
 	router := gin.Default()
-	router.GET("/offers:comunity_id", api.GetOfferByCommunityId(db))
-	router.POST("/offers", api.CreateOffer(db))
-	router.GET("/images:image_id", api.GetImageById(db))
-	router.POST("/images", api.CreateImage(db))
-	router.GET("/users:user_id", api.GetUserById(db))
-	router.POST("/users", api.CreateUser(db))
+	api.SetupRoutes(db, router)
 	err := router.Run("127.0.0.1:8000")
 	if err != nil {
 		fmt.Println("Error: ", err)
