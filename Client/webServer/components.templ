@@ -1,12 +1,29 @@
 package main
 
+
+
 templ userSignupPage() {
-	<form action="/handelSignup" method="post">
-		<input type="text" name="username" placeholder="Username" required></input>
-		<input type="email" name="email" placeholder="Email" required></input>
-		<input type="password" name="password" placeholder="Password" required></input>
-		<input type="submit" value="Sign Up"></input>
-	</form>
+	<!DOCTYPE html>
+	<html >
+		<head>
+			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+		</head>
+		<body>
+		<title>Comradary</title>
+		<div id="signup">
+		<h1>Sign Up</h1>
+			<form action="/handelSignup" method="post">
+				<input type="text" name="username" placeholder="Username" required></input>
+				<br/>
+				<input type="email" name="email" placeholder="Email" required></input>
+				<br/>
+				<input type="password" name="password" placeholder="Password" required></input>
+				<br/>
+				<input type="submit" value="Sign Up"></input>
+		</form>
+		</div>
+		</body>
+	</html>
 }
 
 templ userLoginPage() {
@@ -28,4 +45,17 @@ templ offerPage(offers []Offer) {
 		</li>
 	}
 	</ul>
+}
+
+templ basePage(content string) {
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+			<title>Comradary</title>
+		</head>
+		<body>
+			{content}
+		</body>
+	</html>
 }

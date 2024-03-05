@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"github.com/a-h/templ"
 	"bytes"
+	"log"
 )
 
 type Offer struct {
@@ -16,19 +17,21 @@ type Offer struct {
 func handleLogin(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+		http.Redirect(w, r, "/login", http.StatusNotFound)
 		fmt.Println(err)
 		return
 	}
 	fmt.Printf("Login: %v\n", r.Form)
 	rVals := map[string]string{
-		"username": r.Form.Get("username"),
+		"email": r.Form.Get("email"),
 		"password": r.Form.Get("password"),
 	}
 	jstring := map2json(rVals)
-	req, err := http.NewRequest("POST", "http://localhost:8000/login", bytes.NewBuffer(jstring))
+	req, err := http.NewRequest("POST", "http://localhost:8000/signin", bytes.NewBuffer(jstring))
 	if err != nil {
 		fmt.Println(err)
+		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+		return
 	}
 	defer req.Body.Close()
 
@@ -37,14 +40,22 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
+		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+		return
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		fmt.Println("Error: ", resp.Status)
-		http.Redirect(w, r, "/login", http.StatusNotFound)
+		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusFound)
+
+	token := resp.Header.Get("token")
+	fmt.Println("Token: ", token)
+	http.SetCookie(w, &http.Cookie{Name: "token", Value: string(token)})
+	log.Println("Login successful")
+	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+
 }
 
 
@@ -64,6 +75,8 @@ func handleSignup(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil { 
 		fmt.Println(err)
+		http.Redirect(w, r, "/signup", http.StatusTemporaryRedirect)
+		return
 	}
 	fmt.Printf("Signup: %v\n", r.Form)
 	rVals := map[string]string{
@@ -75,6 +88,8 @@ func handleSignup(w http.ResponseWriter, r *http.Request) {
 	req, err := http.NewRequest("POST", "http://localhost:8000/signup", bytes.NewBuffer(jstring))
 	if err != nil {
 		fmt.Println(err)
+		http.Redirect(w, r, "/signup", http.StatusTemporaryRedirect)
+		return
 	}
 	defer req.Body.Close()
 
@@ -83,14 +98,17 @@ func handleSignup(w http.ResponseWriter, r *http.Request) {
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
+		http.Redirect(w, r, "/signup", http.StatusTemporaryRedirect)
+		return
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		fmt.Println("Error: ", resp.Status)
-		http.Redirect(w, r, "/signup", http.StatusNotFound)
+		http.Redirect(w, r, "/signup", http.StatusTemporaryRedirect)
 		return
 	}
-	http.Redirect(w, r, "/", http.StatusFound)
+	log.Println("Signup successful")
+	http.Redirect(w, r, "/login", http.StatusPermanentRedirect)
 }
 
 	

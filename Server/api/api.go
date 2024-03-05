@@ -9,8 +9,12 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"github.com/golang-jwt/jwt/v4"
+	"time"
+	"fmt"
 )
 
+var jwtKey = []byte("SecretYouShouldHide")
 type User struct {
 	gorm.Model
 	UserName     string
@@ -184,25 +188,63 @@ func SignUp(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+func generateJWT(userid []byte) (string, error) {
+	token := jwt.New(jwt.SigningMethodHS512)
+	claims := token.Claims.(jwt.MapClaims)
+	claims["userid"] = userid
+	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
+	tokenString, err := token.SignedString(jwtKey)
+	if err != nil {
+		err := fmt.Errorf("error signing token: %v", err)
+		return "", err
+	}
+	return tokenString, nil
+}
+
+func validateJWT(token jwt.Token) (string, error) {
+	_, ok := token.Method.(*jwt.SigningMethodHMAC)
+	if !ok {
+		err := fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		return "", err
+	}
+	tokenString, err := token.SignedString(jwtKey)
+	if err != nil {
+		err := fmt.Errorf("error signing token: %v", err)
+		return "", err
+	}
+	return tokenString, nil
+}
 func SignIn(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input SignInInput
 		err := c.BindJSON(&input)
 		if err != nil {
+			log.Println("Error binding json: ", err)
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 		var user User
 		result := db.Where("email = ?", input.Email).First(&user)
 		if result.Error != nil {
+			log.Println("Error finding user: ", result.Error)
 			c.JSON(400, gin.H{"error": result.Error.Error()})
 			return
 		}
 		if !CheckPassword(input.Password, user.PasswordHash) {
+			log.Println("Incorrect password")
 			c.JSON(400, gin.H{"error": "incorrect password"})
 			return
 		}
-		c.JSON(200, user)
+		userBytes := []byte(strconv.Itoa(int(user.ID)))
+		token, err := generateJWT(userBytes)
+		if err != nil {
+			log.Println("Error generating JWT: ", err)
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		c.Header("token", token)
+		c.JSON(200, gin.H{"user": user})
+
 	}
 }
 
