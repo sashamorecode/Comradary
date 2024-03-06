@@ -2,11 +2,16 @@ package main
 
 
 
+
+templ useHTMX() {
+	<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+}
+
 templ userSignupPage() {
 	<!DOCTYPE html>
 	<html >
 		<head>
-			<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+			@useHTMX()
 		</head>
 		<body>
 		<title>Comradary</title>
@@ -43,17 +48,67 @@ templ createOfferPage() {
 	</form>
 }
 
+css offerContainer() {
+	padding: 10px;
+	width: 60vw;
+	high: 80vh;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	background-color: #764abc;
+}
+
+css title() {
+	color: #ffffff;
+}
+
+css offerList() {
+	display: flex;
+	flex-direction: column;
+}
+
+templ navBar() {
+	<nav style="display: flex; justify-content: center; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; width: 100px; background-color: #764abc; color: #ffffff; text-align: center;"
+	>
+		<a href="/">Home</a>
+		<a href="/signup">Sign Up</a>
+		<a href="/login">Log In</a>
+		<a href="/createOffer">Create Offer</a>
+		<a href="/joinCommunity">Join Community</a>
+	</nav>
+}
+
 templ offerPage(offers []Offer) {
-	<h1>Offers</h1>
-	<ul>
+	<!DOCTYPE html>
+	<html>
+		<head>
+			@useHTMX()
+		</head>
+	<h1 style="text-align: center;">Offers</h1>
+	<div id="offers" style="display: flex; justify-content: center;">
+	<ul class={offerList()}>
 	for _, offer := range offers {
-		<li>
-			<h3>{offer.Title}</h3>
-			<p>{offer.User}</p>
-			<p>{offer.Description}</p>
+		<li class={offerContainer()}>
+			<h3 class={title()}>{offer.Title}</h3>
+			<p style="margin-left: 3vw;"
+			>{offer.Description}</p>
 		</li>
 	}
 	</ul>
+	@navBar()
+	</div>
+	</html>
+
+}
+
+templ joinCommunityPage() {
+	<div style="display: flex; justify-content: center; margin-top: 10vh;">
+	<form action="/handelJoinCommunity" method="post">
+		<input type="number" name="community_id" placeholder="Community ID" required></input>
+		<input type="submit" value="Join Community"></input>
+	</form>
+	</div>
+	@navBar()
 }
 
 templ basePage(content string) {

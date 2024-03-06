@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"github.com/a-h/templ"
 	"encoding/json"
-	"context"
 )
 
 type Offer struct {
@@ -209,31 +208,124 @@ func getOffers(w http.ResponseWriter, r *http.Request) []Offer {
 	return offers
 }
 
+func getMyOffers(w http.ResponseWriter, r *http.Request) []Offer {
+	token, err := r.Cookie("token")
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+		return nil
+	}
+	id, err := r.Cookie("token_id")
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+		return nil
+	}
+
+	req, err := http.NewRequest("GET", "http://localhost:8000/myOffers/"+id.Value, bytes.NewBuffer([]byte("")))
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	defer req.Body.Close()
+	req.Header.Set("Authorization", token.Value)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("Error: ", resp.Status)
+		return nil
+	}
+	offers := []Offer{}
+	err = json.NewDecoder(resp.Body).Decode(&offers)
+	if err != nil {
+		fmt.Println(err)
+		return nil
+	}
+	return offers
+}
+	
+
+
 func offerPagehandler(w http.ResponseWriter, r *http.Request) {
-	offers := getOffers(w, r)
+	offers := getMyOffers(w, r)
 	if offers == nil {
 		fmt.Println("Error getting offers")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
-	ctx := context.Background()
-	err := offerPage(offers).Render(ctx, w)
+	
+	err := offerPage(offers).Render(r.Context(), w)
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 	}
 }
 
-
-	
+func handleJoinCommunity(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/joinCommunity", http.StatusTemporaryRedirect)
+		return
+	}
+	token, err := r.Cookie("token")
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+		return
+	}
+	id, err := r.Cookie("token_id")
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+		return
+	}
+	fmt.Printf("Token: %v, ID: %v", token.Value, id)
+	payload := map[string]string{
+		"community_id": r.Form.Get("community_id"),
+		"user_id": id.Value,
+		"user_token": token.Value,
+	}
+	encodedPayload := map2json(payload)
+	req, err := http.NewRequest("POST", "http://localhost:8000/joinCommunity", bytes.NewBuffer(encodedPayload))
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/joinCommunity", http.StatusTemporaryRedirect)
+		return
+	}
+	defer req.Body.Close()
+	req.Header.Set("Content-Type", "application/json")
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/joinCommunity", http.StatusTemporaryRedirect)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("Error: ", resp.Status)
+		http.Redirect(w, r, "/joinCommunity", http.StatusTemporaryRedirect)
+		return
+	}
+	log.Println("Community joined")
+	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+}
 func main() {
 	http.HandleFunc("/", offerPagehandler)
 	http.Handle("/signup", templ.Handler(userSignupPage()))
 	http.Handle("/login", templ.Handler(userLoginPage()))
 	http.Handle("/createOffer", templ.Handler(createOfferPage()))
+	http.Handle("/joinCommunity", templ.Handler(joinCommunityPage()))
 	http.HandleFunc("/handelSignup", handleSignup)
 	http.HandleFunc("/handelLogin", handleLogin)
 	http.HandleFunc("/handelCreateOffer", createOffer)
+	http.HandleFunc("/handelJoinCommunity", handleJoinCommunity)
 	fmt.Println("Server started at http://localhost:8080")
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {

@@ -25,6 +25,7 @@ type User struct {
 	ProfilePhoto *Photo     `gorm:"foreignKey:UserID"`
 	Communities  []Community `gorm:"many2many:user_communities;"`
 }
+
 type Photo struct {
 	gorm.Model
 	Path       string  `gorm:"unique"`
@@ -285,6 +286,89 @@ func GetUserById(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+type joinCommunityInput struct {
+	UserID      string `json:"user_id" binding:"required"`
+	CommunityID string `json:"community_id" binding:"required"`
+	UserToken   string `json:"user_token" binding:"required"`
+}
+func JoinCommunity(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var user User
+		var community Community
+		var input joinCommunityInput
+		err := c.BindJSON(&input)
+		if err != nil {
+			fmt.Printf("error binding json: %v\n", err)
+			c.JSON(400, gin.H{"error": err.Error()})
+		}
+		tokenOwnID, err := validateJWT(input.UserToken)
+		if err != nil {
+			fmt.Printf("error validating token1: %v\n", err)
+			fmt.Printf("token: %v\n", input.UserToken)
+			c.JSON(400, gin.H{"error": err.Error()})
+			return	
+		}
+		if tokenOwnID != input.UserID {
+			fmt.Printf("token id: %v, offer user id: %v\n", tokenOwnID, input.UserID)
+			c.JSON(400, gin.H{"error": "token id does not match offer user id"})
+			return
+		}
+		userID := input.UserID
+		communityID := input.CommunityID
+
+		if userID == "" || communityID == "" {
+			fmt.Printf("user_id: %v, community_id:%v", userID, communityID)
+			c.JSON(400, gin.H{"error": "user_id or community_id is empty"})
+			return
+		}
+		userResult := db.First(&user, userID)
+		if userResult.Error != nil {
+			c.JSON(400, gin.H{"error": userResult.Error.Error()})
+			return
+		}
+		communityResult := db.First(&community, communityID)
+		if communityResult.Error != nil {
+			c.JSON(400, gin.H{"error": communityResult.Error.Error()})
+			return
+		}
+		err = db.Model(&user).Association("Communities").Append(&community)
+		if err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(200, gin.H{"user": user, "community": community})
+	}
+}
+
+func userBelongsToCommunity(db *gorm.DB, userID string, communityID string) (bool, error) {
+	var user User
+	userIDInt, err := strconv.Atoi(userID)
+	if err != nil {
+		return false, fmt.Errorf("error parsing user id: %v", err)
+	}
+	communityIDInt, err := strconv.Atoi(communityID)
+	if err != nil {
+		return false, fmt.Errorf("error parsing community id: %v", err)
+	}
+	result := db.First(&user, userIDInt)
+	if result.Error != nil {
+		return false, result.Error
+	}
+	fmt.Printf("community id: %v\n", communityIDInt)
+	var userCommunities []Community 
+	err = db.Model(&user).Association("Communities").Find(&userCommunities)
+	if err != nil {
+		return false, err
+	}
+	fmt.Printf("userCommunities: %v\n", userCommunities)
+	for _, community := range userCommunities {
+		if community.ID == uint(communityIDInt) {
+			return true, nil
+		}
+	}
+	return false, fmt.Errorf("user does not belong to community")
+}
+
 func CreateOffer(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var err error
@@ -308,6 +392,17 @@ func CreateOffer(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(400, gin.H{"error": "token id does not match offer user id"})
 			return
 		}
+		isInCommunity, err := userBelongsToCommunity(db, offer.UserID, offer.CommunityID)
+		if err != nil {
+			fmt.Printf("error checking if user is in community: %v\n", err)
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		if !isInCommunity {
+			c.JSON(400, gin.H{"error": "user does not belong to community"})
+			return
+		}
+
 		var dbOffer Offer
 		OfferID, err := strconv.Atoi(offer.UserID)
 		if err != nil {
@@ -355,6 +450,29 @@ func GetOffersByCommunityId(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+func GetOffersByUserId(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var offers []Offer
+		var user User
+		param, err := strconv.Atoi(c.Param("id"))
+		id := uint(param)
+		if err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		results := db.Find(&user, id)
+		if results.Error != nil {
+			c.JSON(400, gin.H{"error": results.Error.Error()})
+			return 
+		}
+		err = db.Model(&user).Association("Offers").Find(&offers)
+		if err != nil {
+			c.JSON(400, gin.H{"error": err})
+			return 
+		}
+		c.JSON(200, offers)
+	}
+}
 
 func DropAllTables(db *gorm.DB) {
 	log.Println("Droping all tables")
@@ -368,7 +486,9 @@ func SetupRoutes(db *gorm.DB, router *gin.Engine) {
 	router.POST("/images", CreateImages(db))
 	router.POST("/signup", SignUp(db))
 	router.POST("/signin", SignIn(db))
+	router.POST("/joinCommunity", JoinCommunity(db))
 	router.POST("/offers", CreateOffer(db))
 	router.GET("/offers/:id", GetOffersByCommunityId(db))
+	router.GET("/myOffers/:id", GetOffersByUserId(db))
 
 }
