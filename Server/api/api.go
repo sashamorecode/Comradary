@@ -454,6 +454,7 @@ func GetOffersByUserId(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var offers []Offer
 		var user User
+		var userCommunities []Community
 		param, err := strconv.Atoi(c.Param("id"))
 		id := uint(param)
 		if err != nil {
@@ -465,7 +466,13 @@ func GetOffersByUserId(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(400, gin.H{"error": results.Error.Error()})
 			return 
 		}
-		err = db.Model(&user).Association("Offers").Find(&offers)
+
+		err = db.Model(&user).Association("Communities").Find(&userCommunities)
+		if err != nil {
+			c.JSON(400, gin.H{"error": err})
+			return 
+		}
+		err = db.Model(&userCommunities).Association("Offers").Find(&offers)
 		if err != nil {
 			c.JSON(400, gin.H{"error": err})
 			return 
