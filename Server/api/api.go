@@ -13,8 +13,8 @@ import (
 	"time"
 	"fmt"
 )
-
-var jwtKey = []byte("SecretYouShouldHide")
+//creaet random key
+var jwtKey = []byte("1asf12vsr2agrasg892yh780gahe780g0sbh8")
 type User struct {
 	gorm.Model
 	UserName     string
@@ -35,12 +35,13 @@ type Photo struct {
 
 type Offer struct {
 	gorm.Model
-	Title       string
-	Description string
-	Photos      []Photo   `gorm:"foreignKey:OfferID"`
-	UserID      uint
-	CommunityID uint
+	Title       string	`json:"title"`
+	Description string	`json:"description"`
+	Photos      []Photo     `gorm:"foreignKey:OfferID"`
+	UserID      uint 	`json:"user_id"`
+	CommunityID uint 	`json:"community_id"`	
 }
+
 type Request struct {
 	gorm.Model
 	Title       string
@@ -69,6 +70,14 @@ type SignUpInput struct {
 type SignInInput struct {
 	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
+}
+
+type OfferInput struct {
+	Title       string `json:"title" binding:"required"`
+	Description string `json:"description" binding:"required"`
+	UserID      string `json:"user_id" binding:"required"`
+	CommunityID string `json:"community_id" binding:"required"`
+	Token       string `json:"user_token" binding:"required"`
 }
 
 func InsertTestData(db *gorm.DB) {
@@ -103,13 +112,13 @@ func ConnectDB() *gorm.DB {
 	if err != nil {
 		log.Fatal("Error connecting to the database: ", err)
 	}
-	DropAllTables(db)
+	//DropAllTables(db)
 	err = db.AutoMigrate(&User{}, &Photo{}, &Offer{}, &Request{})
 	if err != nil {
 		log.Fatal("Error Migrating the database: ", err)
 	}
 	log.Println("Inserting test data")
-	InsertTestData(db)
+	//InsertTestData(db)
 	return db
 }
 
@@ -188,32 +197,45 @@ func SignUp(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
-func generateJWT(userid []byte) (string, error) {
-	token := jwt.New(jwt.SigningMethodHS512)
+func generateJWT(userid string) (string, error) {
+	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
-	claims["userid"] = userid
+	claims["user_id"] = userid
 	claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
 	tokenString, err := token.SignedString(jwtKey)
 	if err != nil {
 		err := fmt.Errorf("error signing token: %v", err)
 		return "", err
 	}
+	fmt.Printf("token: %v\n", tokenString)
+	_, err = validateJWT(tokenString)
+	if err != nil {
+		err := fmt.Errorf("error validating token on creation: %v", err)
+		return "", err
+	}
 	return tokenString, nil
 }
 
-func validateJWT(token jwt.Token) (string, error) {
-	_, ok := token.Method.(*jwt.SigningMethodHMAC)
-	if !ok {
-		err := fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		return "", err
-	}
-	tokenString, err := token.SignedString(jwtKey)
+func validateJWT(tokenString string) (string, error ){
+	fmt.Printf("token: %v\n", tokenString)
+	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+		return jwtKey, nil
+	})
 	if err != nil {
-		err := fmt.Errorf("error signing token: %v", err)
+		fmt.Printf("token: %v\n", tokenString)
+		err := fmt.Errorf("error parsing token: %v", err)
 		return "", err
 	}
-	return tokenString, nil
+	if !token.Valid {
+		err := fmt.Errorf("token is not valid")
+		return "", err
+	}
+	tokenClaims := token.Claims.(jwt.MapClaims)
+	userID := tokenClaims["user_id"]
+	fmt.Printf("user id: %v\n", userID)
+	return userID.(string), nil
 }
+
 func SignIn(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var input SignInInput
@@ -235,14 +257,16 @@ func SignIn(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(400, gin.H{"error": "incorrect password"})
 			return
 		}
-		userBytes := []byte(strconv.Itoa(int(user.ID)))
-		token, err := generateJWT(userBytes)
+
+		userID := strconv.Itoa(int(user.ID))
+		token, err := generateJWT(string(userID))
 		if err != nil {
 			log.Println("Error generating JWT: ", err)
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
 		c.Header("token", token)
+		c.Header("token_id", strconv.Itoa(int(user.ID)))
 		c.JSON(200, gin.H{"user": user})
 
 	}
@@ -263,15 +287,49 @@ func GetUserById(db *gorm.DB) gin.HandlerFunc {
 
 func CreateOffer(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var offer Offer
-		err := c.BindJSON(&offer)
+		var err error
+		log.Println("Creating offer")
+		var offer OfferInput
+		err = c.BindJSON(&offer)
 		if err != nil {
+			fmt.Printf("error binding json: %v\n", err)
+			c.JSON(400, gin.H{"binding error": err.Error()})
+			return
+		}
+		tokenOwnID, err := validateJWT(offer.Token)
+		if err != nil {
+			fmt.Printf("error validating token1: %v\n", err)
+			fmt.Printf("token: %v\n", offer.Token)
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
-		result := db.Create(&offer)
+		if tokenOwnID != offer.UserID {
+			fmt.Printf("token id: %v, offer user id: %v\n", tokenOwnID, offer.UserID)
+			c.JSON(400, gin.H{"error": "token id does not match offer user id"})
+			return
+		}
+		var dbOffer Offer
+		OfferID, err := strconv.Atoi(offer.UserID)
+		if err != nil {
+			fmt.Printf("error parsing user id: %v\n", err)
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		dbOffer.UserID = uint(OfferID)
+		CommunityID, err := strconv.Atoi(offer.CommunityID)
+		if err != nil {
+			fmt.Printf("error parsing community id: %v\n", err)
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		dbOffer.CommunityID = uint(CommunityID)
+		dbOffer.Title = offer.Title
+		dbOffer.Description = offer.Description
+		result := db.Create(&dbOffer)
 		if result.Error != nil {
-			c.JSON(400, gin.H{"error": result.Error.Error()})
+			log.Println("Error creating offer: ", result.Error)
+			log.Println("Offer: ", offer)
+			c.JSON(400, gin.H{"error": result.Error.Error(), "offer": offer.UserID})
 			return
 		}
 		c.JSON(200, offer)

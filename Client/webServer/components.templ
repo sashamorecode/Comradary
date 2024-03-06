@@ -34,6 +34,15 @@ templ userLoginPage() {
 	</form>
 }
 
+templ createOfferPage() {
+	<form action="/handelCreateOffer" method="post">
+		<input type="text" name="title" placeholder="Title" required></input>
+		<input type="text" name="description" placeholder="Description" required></input>
+		<input type="number" name="community_id" placeholder="Community ID" required></input>
+		<input type="submit" value="Create Offer"></input>
+	</form>
+}
+
 templ offerPage(offers []Offer) {
 	<h1>Offers</h1>
 	<ul>
