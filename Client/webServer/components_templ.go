@@ -11,6 +11,10 @@ import "io"
 import "bytes"
 import "strings"
 
+import (
+	"strconv"
+)
+
 func useHTMX() templ.Component {
 	return templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
@@ -104,7 +108,15 @@ func createOfferPage() templ.Component {
 			templ_7745c5c3_Var4 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form action=\"/handelCreateOffer\" method=\"post\"><input type=\"text\" name=\"title\" placeholder=\"Title\" required> <input type=\"text\" name=\"description\" placeholder=\"Description\" required> <input type=\"number\" name=\"community_id\" placeholder=\"Community ID\" required> <input type=\"submit\" value=\"Create Offer\"></form>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><head>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = useHTMX().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</head><form id=\"form\" hx-encoding=\"multipart/form-data\" hx-post=\"/handelCreateOffer\"><input type=\"text\" name=\"title\" placeholder=\"Title\" required> <input type=\"text\" name=\"description\" placeholder=\"Description\" required> <input type=\"file\" name=\"image\"> <input type=\"number\" name=\"community_id\" placeholder=\"Community ID\" required> <input type=\"submit\" value=\"Create Offer\"></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -165,7 +177,7 @@ func navBar() templ.Component {
 			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<nav style=\"display: flex; justify-content: center; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; width: 100px; background-color: #764abc; color: #ffffff; text-align: center;\"><a href=\"/\">Home</a> <a href=\"/signup\">Sign Up</a> <a href=\"/login\">Log In</a> <a href=\"/createOffer\">Create Offer</a> <a href=\"/joinCommunity\">Join Community</a></nav>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<nav style=\"display: flex; justify-content: center; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; width: 100px; background-color: #764abc; color: #ffffff; text-align: center;\"><a href=\"/\">Home</a> <a href=\"/signup\">Sign Up</a> <a href=\"/login\">Log In</a> <a href=\"/handelLogout\">Log Out</a> <a href=\"/createOffer\">Create Offer</a> <a href=\"/joinCommunity\">Join Community</a></nav>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -256,7 +268,7 @@ func offerPage(offers []Offer) templ.Component {
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(offer.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 91, Col: 35}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 102, Col: 35}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -269,13 +281,36 @@ func offerPage(offers []Offer) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(offer.Description)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 93, Col: 22}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 104, Col: 22}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</p></li>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</p>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			if len(offer.Photos) > 0 {
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<img src=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString("http://127.0.0.1:8000/images/" + strconv.Itoa(offer.Photos[0].ID)))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" style=\"max-width: 200px; max-height: 100px;\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p style=\"width: 200px; height: 100px;\">>No Image</p>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</li>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -347,7 +382,7 @@ func basePage(content string) templ.Component {
 		var templ_7745c5c3_Var14 string
 		templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(content)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 121, Col: 11}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 140, Col: 11}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 		if templ_7745c5c3_Err != nil {

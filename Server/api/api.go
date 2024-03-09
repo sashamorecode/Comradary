@@ -1,18 +1,19 @@
 package api
 
 import (
-	"crypto/rand"
+	"fmt"
 	"log"
 	"path/filepath"
 	"strconv"
-	"golang.org/x/crypto/bcrypt"
+	"time"
+	mrand "math/rand"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v4"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"github.com/golang-jwt/jwt/v4"
-	"time"
-	"fmt"
 )
+
 //creaet random key
 var jwtKey = []byte("1asf12vsr2agrasg892yh780gahe780g0sbh8")
 type User struct {
@@ -28,10 +29,10 @@ type User struct {
 
 type Photo struct {
 	gorm.Model
-	Path       string  `gorm:"unique"`
-	OfferID    *uint
+	Path       string  `gorm:"unique" json:"path"`
+	OfferID    *uint   
 	RequestID  *uint
-	UserID     uint
+	UserID     uint    `json:"user_id"`
 }
 
 type Offer struct {
@@ -79,6 +80,8 @@ type OfferInput struct {
 	UserID      string `json:"user_id" binding:"required"`
 	CommunityID string `json:"community_id" binding:"required"`
 	Token       string `json:"user_token" binding:"required"`
+	ImageID     string `json:"image_id" binding:"required"`
+	
 }
 
 func InsertTestData(db *gorm.DB) {
@@ -123,37 +126,57 @@ func ConnectDB() *gorm.DB {
 	return db
 }
 
-func CreateImages(db *gorm.DB) gin.HandlerFunc {
+func CreateImage(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		form, err := c.MultipartForm()
+		var err error
+		err = c.Request.ParseMultipartForm(10 << 20)
 		if err != nil {
-			c.JSON(400, gin.H{"error": err.Error()})
+			c.JSON(399, gin.H{"error": err.Error()})
 			return
 		}
-		imageFiles := form.File["images"]
-		var photos []Photo
-		for _, file := range imageFiles {
-			var newRand int
-			_, err := rand.Read([]byte(strconv.Itoa(newRand)))
-			if err != nil {
-				c.JSON(400, gin.H{"error": err.Error()})
-				return
-			}
-			path := filepath.Join("images", strconv.Itoa(newRand)+file.Filename)
-			photo := Photo{Path: path}
-			photos = append(photos, photo)
-			err = c.SaveUploadedFile(file, path)
-			if err != nil {
-				c.JSON(400, gin.H{"error": err.Error()})
-				return
-			}
-			result := db.Create(&photo)
-			if result.Error != nil {
-				c.JSON(400, gin.H{"error": result.Error.Error()})
-				return
-			}
+		form, err := c.MultipartForm()
+		if err != nil {
+			c.JSON(401, gin.H{"error": err.Error()})
+			return
 		}
-		c.JSON(200, photos)
+		if form.File["image"] == nil {
+			c.JSON(402, gin.H{"error": "no image file"})
+			return
+		}
+		tokenString := c.Request.Header.Get("token")
+		userIDstr, err := validateJWT(tokenString)
+		if err != nil {
+			c.JSON(401, gin.H{"error": err.Error()})
+			return
+		}
+		userID, err := strconv.Atoi(userIDstr)
+		if err != nil { c.JSON(404, gin.H{"error": err.Error()}); return}
+		image := form.File["image"][0]
+		randString := strconv.Itoa(mrand.Int())
+		filename := randString + image.Filename
+		err = c.SaveUploadedFile(image, filepath.Join("./images",  filename))
+		if err != nil { c.JSON(406, gin.H{"error": err.Error()}); return}
+		photo := Photo{Path: filename, UserID: uint(userID)}
+		result := db.Create(&photo)
+		if result.Error != nil {
+			fmt.Printf("path: %v\n", photo.Path)
+			c.JSON(406, gin.H{"error": result.Error.Error()})
+			return
+		}
+		c.JSON(200, gin.H{"imageID": strconv.Itoa(int(photo.ID))})
+	}
+}
+
+func GetImageById(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var photo Photo
+		id := c.Param("id")
+		result := db.First(&photo, id)
+		if result.Error != nil {
+			c.JSON(400, gin.H{"error": result.Error.Error()})
+			return
+		}
+		c.File("./images/" + photo.Path)
 	}
 }
 
@@ -377,6 +400,7 @@ func CreateOffer(db *gorm.DB) gin.HandlerFunc {
 		err = c.BindJSON(&offer)
 		if err != nil {
 			fmt.Printf("error binding json: %v\n", err)
+			fmt.Printf("data: %v\n", offer)
 			c.JSON(400, gin.H{"binding error": err.Error()})
 			return
 		}
@@ -426,6 +450,25 @@ func CreateOffer(db *gorm.DB) gin.HandlerFunc {
 			log.Println("Offer: ", offer)
 			c.JSON(400, gin.H{"error": result.Error.Error(), "offer": offer.UserID})
 			return
+		}
+		photoID, err := strconv.Atoi(offer.ImageID)
+		if err != nil {
+			fmt.Printf("error parsing photo id: %v\n", err)
+			c.JSON(200, offer)
+			return 
+		}
+		var photo Photo
+		result = db.First(&photo, uint(photoID))
+		if result.Error != nil {
+			fmt.Printf("error finding photo: %v\n", result.Error)
+			c.JSON(200, offer)
+			return
+		}
+		err = db.Model(&dbOffer).Association("Photos").Append(&photo)
+		if err != nil {
+			fmt.Printf("error associating photo with offer: %v\n", err)
+			c.JSON(200, offer) 
+			return 
 		}
 		c.JSON(200, offer)
 	}
@@ -477,9 +520,19 @@ func GetOffersByUserId(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(400, gin.H{"error": err})
 			return 
 		}
+		for i, offer := range offers {
+			err = db.Model(&offer).Association("Photos").Find(&offers[i].Photos)
+			if err != nil {
+				c.JSON(400, gin.H{"error": err})
+				return 
+			}
+		}
+
 		c.JSON(200, offers)
 	}
 }
+
+
 
 func DropAllTables(db *gorm.DB) {
 	log.Println("Droping all tables")
@@ -490,12 +543,13 @@ func DropAllTables(db *gorm.DB) {
 }
 
 func SetupRoutes(db *gorm.DB, router *gin.Engine) {
-	router.POST("/images", CreateImages(db))
+	router.POST("/image", CreateImage(db))
 	router.POST("/signup", SignUp(db))
 	router.POST("/signin", SignIn(db))
 	router.POST("/joinCommunity", JoinCommunity(db))
 	router.POST("/offers", CreateOffer(db))
 	router.GET("/offers/:id", GetOffersByCommunityId(db))
 	router.GET("/myOffers/:id", GetOffersByUserId(db))
+	router.GET("/images/:id", GetImageById(db))
 
 }

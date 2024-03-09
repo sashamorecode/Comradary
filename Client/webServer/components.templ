@@ -1,5 +1,8 @@
 package main
 
+import (
+	"strconv"
+)
 
 
 
@@ -40,9 +43,14 @@ templ userLoginPage() {
 }
 
 templ createOfferPage() {
-	<form action="/handelCreateOffer" method="post">
+	<!DOCTYPE html>
+	<head>
+		@useHTMX()
+	</head>
+	<form id="form" hx-encoding="multipart/form-data" hx-post="/handelCreateOffer">
 		<input type="text" name="title" placeholder="Title" required></input>
 		<input type="text" name="description" placeholder="Description" required></input>
+		<input type="file" name="image"></input>
 		<input type="number" name="community_id" placeholder="Community ID" required></input>
 		<input type="submit" value="Create Offer"></input>
 	</form>
@@ -73,10 +81,13 @@ templ navBar() {
 		<a href="/">Home</a>
 		<a href="/signup">Sign Up</a>
 		<a href="/login">Log In</a>
+		<a href="/handelLogout">Log Out</a>
 		<a href="/createOffer">Create Offer</a>
 		<a href="/joinCommunity">Join Community</a>
 	</nav>
 }
+
+
 
 templ offerPage(offers []Offer) {
 	<!DOCTYPE html>
@@ -92,6 +103,14 @@ templ offerPage(offers []Offer) {
 			<h3 class={title()}>{offer.Title}</h3>
 			<p style="margin-left: 3vw;"
 			>{offer.Description}</p>
+			if len(offer.Photos) > 0 {
+				<img src={"http://127.0.0.1:8000/images/" +strconv.Itoa(offer.Photos[0].ID)} 
+			     	style="max-width: 200px; max-height: 100px;"></img>
+			     }
+			else {
+				<p style="width: 200px; height: 100px;">
+				>No Image</p>
+			}
 		</li>
 	}
 	</ul>

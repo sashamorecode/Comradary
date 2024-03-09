@@ -7,14 +7,21 @@ import (
 	"net/http"
 	"github.com/a-h/templ"
 	"encoding/json"
+	"mime/multipart"
+	"io"
 )
+
+type Photo struct {
+	ID int
+}
 
 type Offer struct {
 	Title       string
 	Description string
 	User        string
-	
+	Photos      []Photo
 }
+
 
 func handleLogin(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
@@ -62,12 +69,29 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func handelLogout(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{Name: "token", Value: "", MaxAge: -1})
+	http.SetCookie(w, &http.Cookie{Name: "token_id", Value: "", MaxAge: -1})
+	http.Redirect(w, r, "/login", http.StatusPermanentRedirect)
+}
+
+type ImgResponse struct {
+	ImageID string `json:"imageID"`
+}
+
 func createOffer(w http.ResponseWriter, r *http.Request) {
-	//client := &http.Client{}
+	var resp *http.Response
+	var err error
+	var req *http.Request
+	var imgresp ImgResponse
+	client := &http.Client{}
+	MAX_FORM_SIZE := int64(10^6 * 50) // 50MB
+	//parse multipart Form
+
+	err = r.ParseMultipartForm(MAX_FORM_SIZE)
 	fmt.Println("Create Offer")
-	err := r.ParseForm()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("error parsing multipart form: ", err)
 		http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
 		return
 	}
@@ -84,13 +108,77 @@ func createOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Printf("Token: %v, ID: %v", token.Value, id)
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
+		return
+	}
+	//Upload image to server
+	var b bytes.Buffer
+	writer := multipart.NewWriter(&b)
+	imageWriter, err := writer.CreateFormFile("image", r.MultipartForm.File["image"][0].Filename)
+	if err == nil {
+		image, err := r.MultipartForm.File["image"][0].Open()
+		if err != nil {
+			fmt.Println(err)
+			http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
+			return
+		}
+		_, err = io.Copy(imageWriter, image)
+		image.Close()
+		if err != nil { 
+			fmt.Println(err)
+			http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
+			return
+		}
+		writer.Close()
+		req, err = http.NewRequest("POST", "http://localhost:8000/image", &b)
+		if err != nil {
+			fmt.Println(err)
+			http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
+			return
+		}
+		defer req.Body.Close()
+		req.Header.Set("Content-Type", writer.FormDataContentType())
+		req.Header.Set("token", token.Value)
+		resp, err = client.Do(req)
+		if err != nil {
+			fmt.Println(err)
+			http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
+			return
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			fmt.Println("Error: ", resp.Status)
+			http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
+			return
+		}
+		fmt.Println("Image uploaded")
+		// get image id
+		//bind response to struct
+		err = json.NewDecoder(resp.Body).Decode(&imgresp)
+		if err != nil {
+			fmt.Println(err)
+			http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
+			return
+		}
+		fmt.Printf("Image ID: %v\n", imgresp.ImageID)
+	} else {
+		fmt.Println(err)
+	}
+
+	// get image id 
+
+	// create Request
+	fmt.Printf("Form: %v\n", r.Body)
 	// convert id from string to uint
 	payload := map[string]string{
-		"title": r.Form.Get("title"),
-		"description": r.Form.Get("description"),
+		"title": r.MultipartForm.Value["title"][0],
+		"description": r.MultipartForm.Value["description"][0],
 		"user_id": id.Value,
-		"community_id": r.Form.Get("community_id"),
+		"community_id": r.MultipartForm.Value["community_id"][0],
 		"user_token": token.Value,
+		"image_id": imgresp.ImageID,
 	}
 	fmt.Printf("Payload: %v\n", payload)
 	encodedPayload := map2json(payload)
@@ -100,7 +188,7 @@ func createOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req, err := http.NewRequest("POST", "http://localhost:8000/offers", bytes.NewBuffer(encodedPayload))
+	req, err = http.NewRequest("POST", "http://localhost:8000/offers", bytes.NewBuffer(encodedPayload))
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
@@ -108,8 +196,7 @@ func createOffer(w http.ResponseWriter, r *http.Request) {
 	}
 	defer req.Body.Close()
 	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err = client.Do(req)
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
@@ -324,6 +411,7 @@ func main() {
 	http.Handle("/joinCommunity", templ.Handler(joinCommunityPage()))
 	http.HandleFunc("/handelSignup", handleSignup)
 	http.HandleFunc("/handelLogin", handleLogin)
+	http.HandleFunc("/handelLogout", handelLogout)
 	http.HandleFunc("/handelCreateOffer", createOffer)
 	http.HandleFunc("/handelJoinCommunity", handleJoinCommunity)
 	fmt.Println("Server started at http://localhost:8080")
