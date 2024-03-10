@@ -116,10 +116,11 @@ func createOffer(w http.ResponseWriter, r *http.Request) {
 	//Upload image to server
 	var b bytes.Buffer
 	writer := multipart.NewWriter(&b)
-	imageWriter, err := writer.CreateFormFile("image", r.MultipartForm.File["image"][0].Filename)
-	if err == nil {
-		image, err := r.MultipartForm.File["image"][0].Open()
-		if err != nil {
+	if len(r.MultipartForm.File["image"]) > 0{
+		//check if file is an image 
+		imageWriter, err := writer.CreateFormFile("image", r.MultipartForm.File["image"][0].Filename)
+		image, fileErr := r.MultipartForm.File["image"][0].Open()
+		if err != nil || fileErr != nil {
 			fmt.Println(err)
 			http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
 			return
@@ -165,6 +166,7 @@ func createOffer(w http.ResponseWriter, r *http.Request) {
 		fmt.Printf("Image ID: %v\n", imgresp.ImageID)
 	} else {
 		fmt.Println(err)
+		imgresp.ImageID = " "
 	}
 
 	// get image id 
@@ -183,7 +185,7 @@ func createOffer(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Payload: %v\n", payload)
 	encodedPayload := map2json(payload)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("no image?: \n", err)
 		http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
 		return
 	}
@@ -409,6 +411,7 @@ func main() {
 	http.Handle("/login", templ.Handler(userLoginPage()))
 	http.Handle("/createOffer", templ.Handler(createOfferPage()))
 	http.Handle("/joinCommunity", templ.Handler(joinCommunityPage()))
+	http.Handle("/createCommunity", templ.Handler(createCommunityPage()))
 	http.HandleFunc("/handelSignup", handleSignup)
 	http.HandleFunc("/handelLogin", handleLogin)
 	http.HandleFunc("/handelLogout", handelLogout)

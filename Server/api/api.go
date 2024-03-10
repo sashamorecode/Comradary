@@ -143,6 +143,12 @@ func CreateImage(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(402, gin.H{"error": "no image file"})
 			return
 		}
+		fileName := form.File["image"][0].Filename
+		fileType := fileName[len(fileName)-4:]
+		if fileType != ".jpg" && fileType != ".png" && fileType != "jpeg" {
+			c.JSON(403, gin.H{"error": "file type not supported"})
+			return
+		}
 		tokenString := c.Request.Header.Get("token")
 		userIDstr, err := validateJWT(tokenString)
 		if err != nil {

@@ -7,7 +7,7 @@ import (
 
 
 templ useHTMX() {
-	<script src="https://unpkg.com/htmx.org@1.9.10"></script>
+<script src="https://unpkg.com/htmx.org@1.9.5" integrity="sha384-xcuj3WpfgjlKF+FXhSQFQ0ZNr39ln+hwjN3npfM9VBnUskLolQAcN80McRIVOPuO" crossorigin="anonymous"></script>
 }
 
 templ userSignupPage() {
@@ -16,7 +16,7 @@ templ userSignupPage() {
 		<head>
 			@useHTMX()
 		</head>
-		<body>
+		<body style="background-color: #f2f2f2;">
 		<title>Comradary</title>
 		<div id="signup">
 		<h1>Sign Up</h1>
@@ -42,32 +42,55 @@ templ userLoginPage() {
 	</form>
 }
 
+
+css body() {
+	background-color: #50298c;
+
+}
 templ createOfferPage() {
 	<!DOCTYPE html>
 	<head>
 		@useHTMX()
 	</head>
-	<form id="form" hx-encoding="multipart/form-data" hx-post="/handelCreateOffer">
+	<body class={body()}>
+	
+	<form id="form" hx-encoding="multipart/form-data" hx-post="/handelCreateOffer" style="display: flex; flex-direction: column; justify-content: center; align-items: center; margin-top: 10vh;">
 		<input type="text" name="title" placeholder="Title" required></input>
 		<input type="text" name="description" placeholder="Description" required></input>
 		<input type="file" name="image"></input>
 		<input type="number" name="community_id" placeholder="Community ID" required></input>
 		<input type="submit" value="Create Offer"></input>
 	</form>
+	@navBar()
+	</body>
 }
 
 css offerContainer() {
-	padding: 10px;
+	padding: 0.4em;
+	margin: 0.2em;
 	width: 60vw;
-	high: 80vh;
+	max-height: 30vh;
 	display: flex;
+	border-radius: 0.4em;
 	flex-direction: row;
-	justify-content: space-between;
+	justify-content: start;
 	background-color: #764abc;
 }
 
 css title() {
 	color: #ffffff;
+	width: 20%;
+	margin-left: 5%;
+}
+css description() {
+	color: #ffffff;
+	width: 60%;
+	margin-left: 10%;
+}
+css image() {
+	width: 30%;
+	max-height: 70%;
+	margin: 1%;
 }
 
 css offerList() {
@@ -75,15 +98,25 @@ css offerList() {
 	flex-direction: column;
 }
 
+css navBarLink() {
+	color: #ffffff;
+	margin: 0.35em;
+
+	text-decoration: none;
+}
+
 templ navBar() {
-	<nav style="display: flex; justify-content: center; flex-direction: column; position: fixed; top: 0; left: 0; height: 100vh; width: 100px; background-color: #764abc; color: #ffffff; text-align: center;"
-	>
-		<a href="/">Home</a>
-		<a href="/signup">Sign Up</a>
-		<a href="/login">Log In</a>
-		<a href="/handelLogout">Log Out</a>
-		<a href="/createOffer">Create Offer</a>
-		<a href="/joinCommunity">Join Community</a>
+	<nav style="display: flex; justify-content: center; flex-direction: column;
+		position: fixed; top: 0; left: 2vw; width: 10vw; height:100vh; border-radius: 0.4em;
+		background-color: #840a6b; color: #ffffff; text-align: center;">
+		<a class={navBarLink()}
+		href="/">Home</a>
+		<a class={navBarLink()} href="/signup">Sign Up</a>
+		<a class={navBarLink()} href="/login">Log In</a>
+		<a class={navBarLink()} href="/handelLogout">Log Out</a>
+		<a class={navBarLink()} href="/createOffer">Create Offer</a>
+		<a class={navBarLink()} href="/joinCommunity">Join Community</a>
+		<a class={navBarLink()} href="/createCommunity">Create Community</a>
 	</nav>
 }
 
@@ -95,27 +128,30 @@ templ offerPage(offers []Offer) {
 		<head>
 			@useHTMX()
 		</head>
-	<h1 style="text-align: center;">Offers</h1>
+	<body class={body()}>
+	<h1 style="text-align: center; 
+	">Offers</h1>
 	<div id="offers" style="display: flex; justify-content: center;">
 	<ul class={offerList()}>
 	for _, offer := range offers {
 		<li class={offerContainer()}>
-			<h3 class={title()}>{offer.Title}</h3>
-			<p style="margin-left: 3vw;"
-			>{offer.Description}</p>
+			<div style="display: flex; flex-direction: column; justify-content: top; width: 70%;">
+				<h3 class={title()}>{offer.Title}</h3>
+				<p  class={description()}>{offer.Description}</p>
+			</div>
+			<div class={image()}>
 			if len(offer.Photos) > 0 {
 				<img src={"http://127.0.0.1:8000/images/" +strconv.Itoa(offer.Photos[0].ID)} 
-			     	style="max-width: 200px; max-height: 100px;"></img>
+			     	style="width: 100%; border-radius: 0.4em; max-height: 25vh;
+				"></img>
 			     }
-			else {
-				<p style="width: 200px; height: 100px;">
-				>No Image</p>
-			}
+			</div>
 		</li>
 	}
 	</ul>
 	@navBar()
 	</div>
+	</body>
 	</html>
 
 }
@@ -125,6 +161,18 @@ templ joinCommunityPage() {
 	<form action="/handelJoinCommunity" method="post">
 		<input type="number" name="community_id" placeholder="Community ID" required></input>
 		<input type="submit" value="Join Community"></input>
+	</form>
+	</div>
+	@navBar()
+}
+
+templ createCommunityPage() {
+	<div style="display: flex; justify-content: center; margin-top: 10vh;">
+	<form action="/handelCreateCommunity" method="post">
+		<input type="text" name="name" placeholder="Community Name" required></input>
+		<input type="text" name="country" placeholder="Country" required></input>
+		<input type="text" name="city" placeholder="City" required></input>
+		<input type="submit" value="Create Community"></input>
 	</form>
 	</div>
 	@navBar()
