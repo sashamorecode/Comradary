@@ -58,8 +58,8 @@ type Request struct {
 
 type Community struct {
 	gorm.Model
-	Name     string
-	Country  string
+	Name     string    `gorm:"unique"`
+	Country  string  
 	City     string
 	OwnerID  *uint
 	Users    []User    `gorm:"many2many:user_communities;"`
@@ -86,6 +86,21 @@ type OfferInput struct {
 	Token       string `json:"user_token" binding:"required"`
 	ImageID     string `json:"image_id" binding:"required"`
 }
+
+func SetupRoutes(db *gorm.DB, router *gin.Engine) {
+	router.POST("/image", CreateImage(db))
+	router.POST("/signup", SignUp(db))
+	router.POST("/signin", SignIn(db))
+	router.POST("/joinCommunity", JoinCommunity(db))
+	router.POST("/createCommunity", createCommunity(db))
+	router.POST("/offers", CreateOffer(db))
+	router.GET("/offers/:id", GetOffersByCommunityId(db))
+	router.GET("/myOffers", GetOffersByUserId(db))
+	router.GET("/images/:id", GetImageById(db))
+	router.GET("/communities/:country", GetCommunityByCountry(db))
+
+}
+
 
 func InsertTestData(db *gorm.DB) {
 	// Create a Community
@@ -120,11 +135,11 @@ func ConnectDB() *gorm.DB {
 		log.Fatal("Error connecting to the database: ", err)
 	}
 	//DropAllTables(db)
-	err = db.AutoMigrate(&User{}, &Photo{}, &Offer{}, &Request{})
+	err = db.AutoMigrate(&User{}, &Photo{}, &Offer{}, &Request{}, &Community{})
 	if err != nil {
 		log.Fatal("Error Migrating the database: ", err)
 	}
-	log.Println("Inserting test data")
+	//log.Println("Inserting test data")
 	//InsertTestData(db)
 	return db
 }
@@ -330,9 +345,9 @@ func GetUserById(db *gorm.DB) gin.HandlerFunc {
 }
 
 type joinCommunityInput struct {
-	UserID      string `json:"user_id" binding:"required"`
-	CommunityID string `json:"community_id" binding:"required"`
-	UserToken   string `json:"user_token" binding:"required"`
+	UserID        string `json:"user_id" binding:"required"`
+	CommunityID   string `json:"community_id" binding:"required"`
+	UserToken     string `json:"user_token" binding:"required"`
 }
 
 func JoinCommunity(db *gorm.DB) gin.HandlerFunc {
@@ -359,9 +374,8 @@ func JoinCommunity(db *gorm.DB) gin.HandlerFunc {
 		}
 		userID := input.UserID
 		communityID := input.CommunityID
-
 		if userID == "" || communityID == "" {
-			fmt.Printf("user_id: %v, community_id:%v", userID, communityID)
+			fmt.Printf("user_id: %v, community_name:%v", userID, communityID )
 			c.JSON(400, gin.H{"error": "user_id or community_id is empty"})
 			return
 		}
@@ -431,6 +445,33 @@ func createCommunity(db *gorm.DB) gin.HandlerFunc {
 		c.JSON(200, community)
 	}
 }
+
+
+
+
+func GetCommunityByCountry(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var communitys []Community 
+		country := c.Param("country")
+		fmt.Printf("country: %v\n", country)
+		if country == "" {
+			result := db.Find(&communitys)
+			if result.Error != nil {
+				c.JSON(400, gin.H{"error": result.Error.Error()})
+				return
+			}
+			c.JSON(200, communitys)
+			return 
+		}
+		result := db.Find(&communitys, "country = ?", country)
+		if result.Error != nil {
+			c.JSON(400, gin.H{"error": result.Error.Error()})
+			return
+		}
+		c.JSON(200, communitys)
+	}
+}
+
 
 func userBelongsToCommunity(db *gorm.DB, userID string, communityID string) (bool, error) {
 	var user User
@@ -567,12 +608,18 @@ func GetOffersByUserId(db *gorm.DB) gin.HandlerFunc {
 		var offers []Offer
 		var user User
 		var userCommunities []Community
-		param, err := strconv.Atoi(c.Param("id"))
-		id := uint(param)
+		tokenString := c.Request.Header.Get("token")
+		ret, err := validateJWT(tokenString)
 		if err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
+		tokenID, err := strconv.Atoi(ret)
+		if err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		id := uint(tokenID)
 		results := db.Find(&user, id)
 		if results.Error != nil {
 			c.JSON(400, gin.H{"error": results.Error.Error()})
@@ -609,15 +656,3 @@ func DropAllTables(db *gorm.DB) {
 	}
 }
 
-func SetupRoutes(db *gorm.DB, router *gin.Engine) {
-	router.POST("/image", CreateImage(db))
-	router.POST("/signup", SignUp(db))
-	router.POST("/signin", SignIn(db))
-	router.POST("/joinCommunity", JoinCommunity(db))
-	router.POST("/createCommunity", createCommunity(db))
-	router.POST("/offers", CreateOffer(db))
-	router.GET("/offers/:id", GetOffersByCommunityId(db))
-	router.GET("/myOffers/:id", GetOffersByUserId(db))
-	router.GET("/images/:id", GetImageById(db))
-
-}
