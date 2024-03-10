@@ -3,10 +3,11 @@ package api
 import (
 	"fmt"
 	"log"
+	mrand "math/rand"
 	"path/filepath"
 	"strconv"
 	"time"
-	mrand "math/rand"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -14,53 +15,56 @@ import (
 	"gorm.io/gorm"
 )
 
-//creaet random key
+// creaet random key
 var jwtKey = []byte("1asf12vsr2agrasg892yh780gahe780g0sbh8")
+
 type User struct {
 	gorm.Model
-	UserName     string
-	Email        string 	`gorm:"unique"`
-	PasswordHash string	
-	Offers       []Offer    `gorm:"foreignKey:UserID"`
-	Requests     []Request  `gorm:"foreignKey:UserID"`
-	ProfilePhoto *Photo     `gorm:"foreignKey:UserID"`
-	Communities  []Community `gorm:"many2many:user_communities;"`
+	UserName         string
+	Email            string `gorm:"unique"`
+	PasswordHash     string
+	Offers           []Offer     `gorm:"foreignKey:UserID"`
+	Requests         []Request   `gorm:"foreignKey:UserID"`
+	ProfilePhoto     *Photo      `gorm:"foreignKey:UserID"`
+	Communities      []Community `gorm:"many2many:user_communities;"`
+	OwnedCommunities []Community `gorm:"foreignKey:OwnerID"`
 }
 
 type Photo struct {
 	gorm.Model
-	Path       string  `gorm:"unique" json:"path"`
-	OfferID    *uint   
-	RequestID  *uint
-	UserID     uint    `json:"user_id"`
+	Path      string `gorm:"unique" json:"path"`
+	OfferID   *uint
+	RequestID *uint
+	UserID    uint `json:"user_id"`
 }
 
 type Offer struct {
 	gorm.Model
-	Title       string	`json:"title"`
-	Description string	`json:"description"`
-	Photos      []Photo     `gorm:"foreignKey:OfferID"`
-	UserID      uint 	`json:"user_id"`
-	CommunityID uint 	`json:"community_id"`	
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Photos      []Photo `gorm:"foreignKey:OfferID"`
+	UserID      uint    `json:"user_id"`
+	CommunityID uint    `json:"community_id"`
 }
 
 type Request struct {
 	gorm.Model
 	Title       string
 	Description string
-	Photos      []Photo   `gorm:"foreignKey:RequestID"`
-	UserID      uint 
+	Photos      []Photo `gorm:"foreignKey:RequestID"`
+	UserID      uint
 	CommunityID uint
 }
 
 type Community struct {
 	gorm.Model
-	Name       string
-	Lat        float64
-	Lon        float64
-	Users      []User    `gorm:"many2many:user_communities;"`
-	Offers     []Offer   `gorm:"foreignKey:CommunityID"`
-	Requests   []Request `gorm:"foreignKey:CommunityID"`
+	Name     string
+	Country  string
+	City     string
+	OwnerID  *uint
+	Users    []User    `gorm:"many2many:user_communities;"`
+	Offers   []Offer   `gorm:"foreignKey:CommunityID"`
+	Requests []Request `gorm:"foreignKey:CommunityID"`
 }
 
 type SignUpInput struct {
@@ -81,23 +85,22 @@ type OfferInput struct {
 	CommunityID string `json:"community_id" binding:"required"`
 	Token       string `json:"user_token" binding:"required"`
 	ImageID     string `json:"image_id" binding:"required"`
-	
 }
 
 func InsertTestData(db *gorm.DB) {
-	// Create a Community 
-	community := Community{Name: "test", Lat: 0.0, Lon: 0.0}
+	// Create a Community
+	community := Community{Name: "test", Country: "test", City: "testcity"}
 	result := db.Create(&community)
 	if result.Error != nil {
 		log.Fatal("Error creating community: ", result.Error)
 	}
 	// Create a User
-	user := User{UserName: "test", Email: "sas@gmail.com", PasswordHash: "test" }
+	user := User{UserName: "test", Email: "sas@gmail.com", PasswordHash: "test"}
 	result = db.Create(&user)
 	if result.Error != nil {
 		log.Fatal("Error creating user: ", result.Error)
 	}
-	// Create an offer 
+	// Create an offer
 	offer := Offer{Title: "test", Description: "test", UserID: user.ID, CommunityID: community.ID}
 	result = db.Create(&offer)
 	if result.Error != nil {
@@ -108,7 +111,7 @@ func InsertTestData(db *gorm.DB) {
 	result = db.Create(&request)
 	if result.Error != nil {
 		log.Fatal("Error creating request: ", result.Error)
-	}	
+	}
 }
 func ConnectDB() *gorm.DB {
 	dsn := "root:password@tcp(127.0.0.1:3306)/mysql?charset=utf8mb4&parseTime=True&loc=Local"
@@ -156,12 +159,18 @@ func CreateImage(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		userID, err := strconv.Atoi(userIDstr)
-		if err != nil { c.JSON(404, gin.H{"error": err.Error()}); return}
+		if err != nil {
+			c.JSON(404, gin.H{"error": err.Error()})
+			return
+		}
 		image := form.File["image"][0]
 		randString := strconv.Itoa(mrand.Int())
 		filename := randString + image.Filename
-		err = c.SaveUploadedFile(image, filepath.Join("./images",  filename))
-		if err != nil { c.JSON(406, gin.H{"error": err.Error()}); return}
+		err = c.SaveUploadedFile(image, filepath.Join("./images", filename))
+		if err != nil {
+			c.JSON(406, gin.H{"error": err.Error()})
+			return
+		}
 		photo := Photo{Path: filename, UserID: uint(userID)}
 		result := db.Create(&photo)
 		if result.Error != nil {
@@ -177,6 +186,11 @@ func GetImageById(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var photo Photo
 		id := c.Param("id")
+		_, err := strconv.Atoi(id)
+		if err != nil {
+			c.JSON(400, gin.H{"error": "id is not a number"})
+			return
+		}
 		result := db.First(&photo, id)
 		if result.Error != nil {
 			c.JSON(400, gin.H{"error": result.Error.Error()})
@@ -246,7 +260,7 @@ func generateJWT(userid string) (string, error) {
 	return tokenString, nil
 }
 
-func validateJWT(tokenString string) (string, error ){
+func validateJWT(tokenString string) (string, error) {
 	fmt.Printf("token: %v\n", tokenString)
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return jwtKey, nil
@@ -320,6 +334,7 @@ type joinCommunityInput struct {
 	CommunityID string `json:"community_id" binding:"required"`
 	UserToken   string `json:"user_token" binding:"required"`
 }
+
 func JoinCommunity(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var user User
@@ -335,7 +350,7 @@ func JoinCommunity(db *gorm.DB) gin.HandlerFunc {
 			fmt.Printf("error validating token1: %v\n", err)
 			fmt.Printf("token: %v\n", input.UserToken)
 			c.JSON(400, gin.H{"error": err.Error()})
-			return	
+			return
 		}
 		if tokenOwnID != input.UserID {
 			fmt.Printf("token id: %v, offer user id: %v\n", tokenOwnID, input.UserID)
@@ -369,6 +384,54 @@ func JoinCommunity(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+type createCommunityInput struct {
+	Name    string `json:"name" binding:"required"`
+	Country string `json:"country" binding:"required"`
+	City    string `json:"city" binding:"required"`
+}
+
+func createCommunity(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var err error
+		var owner User
+		tokenString := c.Request.Header.Get("token")
+		userID, err := validateJWT(tokenString)
+		if err != nil {
+			c.JSON(400, gin.H{"error token valdiation": err.Error()})
+			return
+		}
+		result := db.First(&owner, userID)
+		if result.Error != nil {
+			c.JSON(401, gin.H{"error finding user": result.Error.Error()})
+			return
+		}
+
+		var input createCommunityInput
+		err = c.BindJSON(&input)
+		if err != nil {
+			c.JSON(402, gin.H{"error parsing json": err.Error()})
+			return
+		}
+		community := Community{Name: input.Name, Country: input.Country, City: input.City}
+		result = db.Create(&community)
+		if result.Error != nil {
+			c.JSON(403, gin.H{"error creating community": result.Error.Error()})
+			return
+		}
+		err = db.Model(&owner).Association("OwnedCommunities").Append(&community)
+		if err != nil {
+			c.JSON(404, gin.H{"error creatings assisiation to owner": err.Error()})
+			return
+		}
+		err = db.Model(&owner).Association("Communities").Append(&community)
+		if err != nil {
+			c.JSON(405, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(200, community)
+	}
+}
+
 func userBelongsToCommunity(db *gorm.DB, userID string, communityID string) (bool, error) {
 	var user User
 	userIDInt, err := strconv.Atoi(userID)
@@ -384,7 +447,7 @@ func userBelongsToCommunity(db *gorm.DB, userID string, communityID string) (boo
 		return false, result.Error
 	}
 	fmt.Printf("community id: %v\n", communityIDInt)
-	var userCommunities []Community 
+	var userCommunities []Community
 	err = db.Model(&user).Association("Communities").Find(&userCommunities)
 	if err != nil {
 		return false, err
@@ -461,7 +524,7 @@ func CreateOffer(db *gorm.DB) gin.HandlerFunc {
 		if err != nil {
 			fmt.Printf("error parsing photo id: %v\n", err)
 			c.JSON(200, offer)
-			return 
+			return
 		}
 		var photo Photo
 		result = db.First(&photo, uint(photoID))
@@ -473,8 +536,8 @@ func CreateOffer(db *gorm.DB) gin.HandlerFunc {
 		err = db.Model(&dbOffer).Association("Photos").Append(&photo)
 		if err != nil {
 			fmt.Printf("error associating photo with offer: %v\n", err)
-			c.JSON(200, offer) 
-			return 
+			c.JSON(200, offer)
+			return
 		}
 		c.JSON(200, offer)
 	}
@@ -495,7 +558,7 @@ func GetOffersByCommunityId(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		c.JSON(200, offers)
-		
+
 	}
 }
 
@@ -513,32 +576,30 @@ func GetOffersByUserId(db *gorm.DB) gin.HandlerFunc {
 		results := db.Find(&user, id)
 		if results.Error != nil {
 			c.JSON(400, gin.H{"error": results.Error.Error()})
-			return 
+			return
 		}
 
 		err = db.Model(&user).Association("Communities").Find(&userCommunities)
 		if err != nil {
 			c.JSON(400, gin.H{"error": err})
-			return 
+			return
 		}
 		err = db.Model(&userCommunities).Association("Offers").Find(&offers)
 		if err != nil {
 			c.JSON(400, gin.H{"error": err})
-			return 
+			return
 		}
 		for i, offer := range offers {
 			err = db.Model(&offer).Association("Photos").Find(&offers[i].Photos)
 			if err != nil {
 				c.JSON(400, gin.H{"error": err})
-				return 
+				return
 			}
 		}
 
 		c.JSON(200, offers)
 	}
 }
-
-
 
 func DropAllTables(db *gorm.DB) {
 	log.Println("Droping all tables")
@@ -553,6 +614,7 @@ func SetupRoutes(db *gorm.DB, router *gin.Engine) {
 	router.POST("/signup", SignUp(db))
 	router.POST("/signin", SignIn(db))
 	router.POST("/joinCommunity", JoinCommunity(db))
+	router.POST("/createCommunity", createCommunity(db))
 	router.POST("/offers", CreateOffer(db))
 	router.GET("/offers/:id", GetOffersByCommunityId(db))
 	router.GET("/myOffers/:id", GetOffersByUserId(db))

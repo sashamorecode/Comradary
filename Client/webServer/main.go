@@ -2,13 +2,14 @@ package main
 
 import (
 	"bytes"
-	"fmt"
-	"log"
-	"net/http"
-	"github.com/a-h/templ"
 	"encoding/json"
-	"mime/multipart"
+	"fmt"
 	"io"
+	"log"
+	"mime/multipart"
+	"net/http"
+
+	"github.com/a-h/templ"
 )
 
 type Photo struct {
@@ -22,7 +23,6 @@ type Offer struct {
 	Photos      []Photo
 }
 
-
 func handleLogin(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -32,7 +32,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Printf("Login: %v\n", r.Form)
 	rVals := map[string]string{
-		"email": r.Form.Get("email"),
+		"email":    r.Form.Get("email"),
 		"password": r.Form.Get("password"),
 	}
 	jstring := map2json(rVals)
@@ -85,7 +85,7 @@ func createOffer(w http.ResponseWriter, r *http.Request) {
 	var req *http.Request
 	var imgresp ImgResponse
 	client := &http.Client{}
-	MAX_FORM_SIZE := int64(10^6 * 50) // 50MB
+	MAX_FORM_SIZE := int64(10 ^ 6*50) // 50MB
 	//parse multipart Form
 
 	err = r.ParseMultipartForm(MAX_FORM_SIZE)
@@ -116,8 +116,8 @@ func createOffer(w http.ResponseWriter, r *http.Request) {
 	//Upload image to server
 	var b bytes.Buffer
 	writer := multipart.NewWriter(&b)
-	if len(r.MultipartForm.File["image"]) > 0{
-		//check if file is an image 
+	if len(r.MultipartForm.File["image"]) > 0 {
+		//check if file is an image
 		imageWriter, err := writer.CreateFormFile("image", r.MultipartForm.File["image"][0].Filename)
 		image, fileErr := r.MultipartForm.File["image"][0].Open()
 		if err != nil || fileErr != nil {
@@ -127,7 +127,7 @@ func createOffer(w http.ResponseWriter, r *http.Request) {
 		}
 		_, err = io.Copy(imageWriter, image)
 		image.Close()
-		if err != nil { 
+		if err != nil {
 			fmt.Println(err)
 			http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
 			return
@@ -169,18 +169,18 @@ func createOffer(w http.ResponseWriter, r *http.Request) {
 		imgresp.ImageID = " "
 	}
 
-	// get image id 
+	// get image id
 
 	// create Request
 	fmt.Printf("Form: %v\n", r.Body)
 	// convert id from string to uint
 	payload := map[string]string{
-		"title": r.MultipartForm.Value["title"][0],
-		"description": r.MultipartForm.Value["description"][0],
-		"user_id": id.Value,
+		"title":        r.MultipartForm.Value["title"][0],
+		"description":  r.MultipartForm.Value["description"][0],
+		"user_id":      id.Value,
 		"community_id": r.MultipartForm.Value["community_id"][0],
-		"user_token": token.Value,
-		"image_id": imgresp.ImageID,
+		"user_token":   token.Value,
+		"image_id":     imgresp.ImageID,
 	}
 	fmt.Printf("Payload: %v\n", payload)
 	encodedPayload := map2json(payload)
@@ -215,9 +215,8 @@ func createOffer(w http.ResponseWriter, r *http.Request) {
 
 }
 
-
 func map2json(m map[string]string) []byte {
-	
+
 	json := "{"
 	for k, v := range m {
 		json += fmt.Sprintf("\"%v\": \"%v\",", k, v)
@@ -227,10 +226,9 @@ func map2json(m map[string]string) []byte {
 	return []byte(json)
 }
 
-
 func handleSignup(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
-	if err != nil { 
+	if err != nil {
 		fmt.Println("Error parsing form: ", err)
 		http.Redirect(w, r, "/signup", http.StatusTemporaryRedirect)
 		return
@@ -239,7 +237,7 @@ func handleSignup(w http.ResponseWriter, r *http.Request) {
 	rVals := map[string]string{
 		"username": r.Form.Get("username"),
 		"password": r.Form.Get("password"),
-		"email": r.Form.Get("email"),
+		"email":    r.Form.Get("email"),
 	}
 	jstring := map2json(rVals)
 	req, err := http.NewRequest("POST", "http://localhost:8000/signup", bytes.NewBuffer(jstring))
@@ -337,8 +335,6 @@ func getMyOffers(w http.ResponseWriter, r *http.Request) []Offer {
 	}
 	return offers
 }
-	
-
 
 func offerPagehandler(w http.ResponseWriter, r *http.Request) {
 	offers := getMyOffers(w, r)
@@ -347,7 +343,7 @@ func offerPagehandler(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
 	}
-	
+
 	err := offerPage(offers).Render(r.Context(), w)
 	if err != nil {
 		fmt.Println(err)
@@ -377,8 +373,8 @@ func handleJoinCommunity(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Token: %v, ID: %v", token.Value, id)
 	payload := map[string]string{
 		"community_id": r.Form.Get("community_id"),
-		"user_id": id.Value,
-		"user_token": token.Value,
+		"user_id":      id.Value,
+		"user_token":   token.Value,
 	}
 	encodedPayload := map2json(payload)
 	req, err := http.NewRequest("POST", "http://localhost:8000/joinCommunity", bytes.NewBuffer(encodedPayload))
@@ -405,6 +401,53 @@ func handleJoinCommunity(w http.ResponseWriter, r *http.Request) {
 	log.Println("Community joined")
 	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
 }
+
+func handleCreateCommunity(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/createCommunity", http.StatusTemporaryRedirect)
+		return
+	}
+	token, err := r.Cookie("token")
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+		return
+	}
+
+	payload := map[string]string{
+		"name":    r.Form.Get("name"),
+		"country": r.Form.Get("country"),
+		"city":    r.Form.Get("city"),
+	}
+	encodedPayload := map2json(payload)
+	req, err := http.NewRequest("POST", "http://localhost:8000/createCommunity", bytes.NewBuffer(encodedPayload))
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/createCommunity", http.StatusTemporaryRedirect)
+		return
+	}
+	defer req.Body.Close()
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("token", token.Value)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/createCommunity", http.StatusTemporaryRedirect)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("Error: ", resp.Status)
+		http.Redirect(w, r, "/createCommunity", http.StatusTemporaryRedirect)
+		return
+	}
+	log.Println("Community created")
+	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+}
+
 func main() {
 	http.HandleFunc("/", offerPagehandler)
 	http.Handle("/signup", templ.Handler(userSignupPage()))
@@ -417,10 +460,10 @@ func main() {
 	http.HandleFunc("/handelLogout", handelLogout)
 	http.HandleFunc("/handelCreateOffer", createOffer)
 	http.HandleFunc("/handelJoinCommunity", handleJoinCommunity)
+	http.HandleFunc("/handelCreateCommunity", handleCreateCommunity)
 	fmt.Println("Server started at http://localhost:8080")
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		fmt.Println(err)
 	}
 }
-
