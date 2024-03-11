@@ -58,7 +58,7 @@ func userSignupPage() templ.Component {
 				templ_7745c5c3_Buffer = templ.GetBuffer()
 				defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<title>Comradary</title><div id=\"signup\" style=\"display: flex; justify-content: center; margin-top: 10vh; flex-direction: column; align-items: center;\"><h1>Sign Up</h1><form action=\"/handelSignup\" method=\"post\"><input type=\"text\" name=\"username\" placeholder=\"Username\" required><br><input type=\"email\" name=\"email\" placeholder=\"Email\" required><br><input type=\"password\" name=\"password\" placeholder=\"Password\" required><br><input type=\"submit\" value=\"Sign Up\"></form></div>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<title>Comradary</title><div id=\"signup\" style=\"display: flex; justify-content: center; margin-top: 10vh; flex-direction: column; align-items: center;\"><h1>Sign Up</h1><form action=\"/handelSignup\" method=\"post\"><input type=\"email\" name=\"email\" placeholder=\"Email\" required><br><input type=\"text\" name=\"username\" placeholder=\"Username\" required><br><input type=\"password\" name=\"password\" placeholder=\"Password\" required><br><input type=\"submit\" value=\"Sign Up\"></form></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -146,7 +146,7 @@ func createOfferPage() templ.Component {
 				templ_7745c5c3_Buffer = templ.GetBuffer()
 				defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div style=\"display: flex; justify-content: center; margin-top: 10vh; flex-direction: column; align-items: center;\"><h1>Create Offer</h1><form id=\"form\" hx-encoding=\"multipart/form-data\" hx-post=\"/handelCreateOffer\" style=\"display: flex; flex-direction: column; justify-content: center; align-items: center;\"><input type=\"text\" name=\"title\" placeholder=\"Title\" required> <textarea name=\"description\" placeholder=\"Description\" required></textarea> <input type=\"file\" name=\"image\" style=\"margin-left: 4.7em;\"> <input type=\"number\" name=\"community_id\" placeholder=\"Community ID\" required> <input type=\"submit\" value=\"Create Offer\"></form></div>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"pageDiv\" style=\"display: flex; justify-content: center; margin-top: 10vh; flex-direction: column; align-items: center;\"><form id=\"form\" hx-encoding=\"multipart/form-data\" hx-post=\"/handelCreateOffer\" hx-swap=\"outerHTML\" hx-target=\"#pageDiv\" style=\"display: flex; flex-direction: column; justify-content: center; align-items: center;\"><h1>Create Offer</h1><input type=\"text\" name=\"title\" placeholder=\"Title\" required> <textarea name=\"description\" placeholder=\"Description\" required style=\"width: 30em; height: 10em;\">></textarea> <input type=\"file\" name=\"image\" style=\"margin-left: 4.7em;\"> <select id=\"community_id\" name=\"community_id\" placeholder=\"Community ID\" required hx-get=\"/userCommunitiesList\" hx-swap=\"outerHTML\" hx-trigger=\"load\" hx-target=\"#community_id\"><option>Loading...</option></select> <input type=\"submit\" value=\"Create Offer\"></form></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -197,8 +197,9 @@ func offerContainer() templ.CSSClass {
 func title() templ.CSSClass {
 	var templ_7745c5c3_CSSBuilder strings.Builder
 	templ_7745c5c3_CSSBuilder.WriteString(`color:#ffffff;`)
-	templ_7745c5c3_CSSBuilder.WriteString(`width:20%;`)
-	templ_7745c5c3_CSSBuilder.WriteString(`margin-left:5%;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`margin-left:2.5%;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`margin-top:0px;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`margin-bottom:0px;`)
 	templ_7745c5c3_CSSID := templ.CSSID(`title`, templ_7745c5c3_CSSBuilder.String())
 	return templ.ComponentCSSClass{
 		ID:    templ_7745c5c3_CSSID,
@@ -210,7 +211,8 @@ func description() templ.CSSClass {
 	var templ_7745c5c3_CSSBuilder strings.Builder
 	templ_7745c5c3_CSSBuilder.WriteString(`color:#ffffff;`)
 	templ_7745c5c3_CSSBuilder.WriteString(`width:60%;`)
-	templ_7745c5c3_CSSBuilder.WriteString(`margin-left:10%;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`margin-left:5%;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`margin-top:0px;`)
 	templ_7745c5c3_CSSID := templ.CSSID(`description`, templ_7745c5c3_CSSBuilder.String())
 	return templ.ComponentCSSClass{
 		ID:    templ_7745c5c3_CSSID,
@@ -247,6 +249,79 @@ func navBarLink() templ.CSSClass {
 	templ_7745c5c3_CSSBuilder.WriteString(`margin:0.35em;`)
 	templ_7745c5c3_CSSBuilder.WriteString(`text-decoration:none;`)
 	templ_7745c5c3_CSSID := templ.CSSID(`navBarLink`, templ_7745c5c3_CSSBuilder.String())
+	return templ.ComponentCSSClass{
+		ID:    templ_7745c5c3_CSSID,
+		Class: templ.SafeCSS(`.` + templ_7745c5c3_CSSID + `{` + templ_7745c5c3_CSSBuilder.String() + `}`),
+	}
+}
+
+func communityName() templ.CSSClass {
+	var templ_7745c5c3_CSSBuilder strings.Builder
+	templ_7745c5c3_CSSBuilder.WriteString(`color:#ffffff;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`font-size:.8em;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`margin-left:2.5%;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`margin-top:0.1em;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`margin-bottom:0em;`)
+	templ_7745c5c3_CSSID := templ.CSSID(`communityName`, templ_7745c5c3_CSSBuilder.String())
+	return templ.ComponentCSSClass{
+		ID:    templ_7745c5c3_CSSID,
+		Class: templ.SafeCSS(`.` + templ_7745c5c3_CSSID + `{` + templ_7745c5c3_CSSBuilder.String() + `}`),
+	}
+}
+
+func timeStamp() templ.CSSClass {
+	var templ_7745c5c3_CSSBuilder strings.Builder
+	templ_7745c5c3_CSSBuilder.WriteString(`color:#ffffff;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`font-size:.8em;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`margin-left:2.5%;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`margin-top:0.1em;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`margin-bottom:0em;`)
+	templ_7745c5c3_CSSID := templ.CSSID(`timeStamp`, templ_7745c5c3_CSSBuilder.String())
+	return templ.ComponentCSSClass{
+		ID:    templ_7745c5c3_CSSID,
+		Class: templ.SafeCSS(`.` + templ_7745c5c3_CSSID + `{` + templ_7745c5c3_CSSBuilder.String() + `}`),
+	}
+}
+
+func offerHeader() templ.CSSClass {
+	var templ_7745c5c3_CSSBuilder strings.Builder
+	templ_7745c5c3_CSSBuilder.WriteString(`margin-bottom:0.5em;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`background-color:#643ca3;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`border-radius:0.4em;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`padding-top:0.5em;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`padding-bottom:0.5em;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`display:flex;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`flex-direction:row;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`justify-content:space-between;`)
+	templ_7745c5c3_CSSID := templ.CSSID(`offerHeader`, templ_7745c5c3_CSSBuilder.String())
+	return templ.ComponentCSSClass{
+		ID:    templ_7745c5c3_CSSID,
+		Class: templ.SafeCSS(`.` + templ_7745c5c3_CSSID + `{` + templ_7745c5c3_CSSBuilder.String() + `}`),
+	}
+}
+
+func offerHeaderLeft() templ.CSSClass {
+	var templ_7745c5c3_CSSBuilder strings.Builder
+	templ_7745c5c3_CSSBuilder.WriteString(`display:flex;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`flex-direction:column;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`justify-content:start;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`flex-grow:1;`)
+	templ_7745c5c3_CSSID := templ.CSSID(`offerHeaderLeft`, templ_7745c5c3_CSSBuilder.String())
+	return templ.ComponentCSSClass{
+		ID:    templ_7745c5c3_CSSID,
+		Class: templ.SafeCSS(`.` + templ_7745c5c3_CSSID + `{` + templ_7745c5c3_CSSBuilder.String() + `}`),
+	}
+}
+
+func offerLink() templ.CSSClass {
+	var templ_7745c5c3_CSSBuilder strings.Builder
+	templ_7745c5c3_CSSBuilder.WriteString(`color:#ffffff;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`margin:5%;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`margin-top:0.1em;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`text-decoration:thin;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`color:#ffffff;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`background-color:#643ca3;`)
+	templ_7745c5c3_CSSID := templ.CSSID(`offerLink`, templ_7745c5c3_CSSBuilder.String())
 	return templ.ComponentCSSClass{
 		ID:    templ_7745c5c3_CSSID,
 		Class: templ.SafeCSS(`.` + templ_7745c5c3_CSSID + `{` + templ_7745c5c3_CSSBuilder.String() + `}`),
@@ -454,12 +529,12 @@ func offerPage(offers []Offer) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var20 = []any{title()}
+				var templ_7745c5c3_Var20 = []any{offerHeader()}
 				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var20...)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<h3 class=\"")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -471,25 +546,29 @@ func offerPage(offers []Offer) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var21 string
-				templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(offer.Title)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 133, Col: 36}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
+				var templ_7745c5c3_Var21 = []any{offerHeaderLeft()}
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var21...)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</h3>")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var22 = []any{description()}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var21).String()))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var22 = []any{title()}
 				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var22...)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p class=\"")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<h3 class=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -502,11 +581,72 @@ func offerPage(offers []Offer) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var23 string
-				templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(offer.Description)
+				templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(offer.Title)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 134, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 192, Col: 37}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</h3>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var24 = []any{communityName()}
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var24...)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p class=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var24).String()))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">Posted To: ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var25 string
+				templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(offer.CommunityName)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 193, Col: 64}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</p>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var26 = []any{timeStamp()}
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var26...)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p class=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var26).String()))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">Posted At: ")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var27 string
+				templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(
+					offer.CreatedAt)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 195, Col: 20}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -514,8 +654,64 @@ func offerPage(offers []Offer) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var24 = []any{image()}
-				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var24...)
+				var templ_7745c5c3_Var28 = []any{offerLink()}
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var28...)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<a class=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var28).String()))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" href=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var29 templ.SafeURL = templ.SafeURL("/viewOffer/" + strconv.Itoa(offer.ID))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var29)))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">View Offer</a></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var30 = []any{description()}
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var30...)
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p class=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var30).String()))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var31 string
+				templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(offer.Description)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 200, Col: 48}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</p></div>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var32 = []any{image()}
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var32...)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -523,7 +719,7 @@ func offerPage(offers []Offer) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var24).String()))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var32).String()))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -540,7 +736,7 @@ func offerPage(offers []Offer) templ.Component {
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" style=\"width: 100%; border-radius: 0.4em; max-height: 25vh;\n				\">")
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" style=\"width: 100%; border-radius: 0.4em; max-height: 25vh;\" loading=\"lazy\">")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -578,9 +774,9 @@ func communityOptions(communities []Community) templ.Component {
 			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var25 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var25 == nil {
-			templ_7745c5c3_Var25 = templ.NopComponent
+		templ_7745c5c3_Var33 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var33 == nil {
+			templ_7745c5c3_Var33 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<select name=\"community_id\" id=\"optList\"><option>select community</option> ")
@@ -600,12 +796,12 @@ func communityOptions(communities []Community) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var26 string
-			templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(community.Name)
+			var templ_7745c5c3_Var34 string
+			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(community.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 155, Col: 79}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 221, Col: 79}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -633,18 +829,18 @@ func joinCommunityPage() templ.Component {
 			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var27 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var27 == nil {
-			templ_7745c5c3_Var27 = templ.NopComponent
+		templ_7745c5c3_Var35 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var35 == nil {
+			templ_7745c5c3_Var35 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Var28 := templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Var36 := templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 			if !templ_7745c5c3_IsBuffer {
 				templ_7745c5c3_Buffer = templ.GetBuffer()
 				defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div hx-get=\"/communitiesList\" hx-swap=\"outerHTML\" hx-trigger=\"change from:#country\" hx-target=\"#optList\" hx-include=\"#country\" style=\"display: flex; justify-content: center; margin-top: 10vh;\"><form action=\"/handelJoinCommunity\" method=\"post\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div hx-get=\"/communitiesList\" hx-swap=\"outerHTML\" hx-trigger=\"change from:#country, load\" hx-target=\"#optList\" hx-include=\"#country\" style=\"display: flex; justify-content: center; margin-top: 10vh;\"><form action=\"/handelJoinCommunity\" method=\"post\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -661,7 +857,7 @@ func joinCommunityPage() templ.Component {
 			}
 			return templ_7745c5c3_Err
 		})
-		templ_7745c5c3_Err = basePage().Render(templ.WithChildren(ctx, templ_7745c5c3_Var28), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = basePage().Render(templ.WithChildren(ctx, templ_7745c5c3_Var36), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -680,12 +876,12 @@ func createCommunityPage() templ.Component {
 			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var29 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var29 == nil {
-			templ_7745c5c3_Var29 = templ.NopComponent
+		templ_7745c5c3_Var37 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var37 == nil {
+			templ_7745c5c3_Var37 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Var30 := templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Var38 := templ.ComponentFunc(func(ctx context.Context, templ_7745c5c3_W io.Writer) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templ_7745c5c3_W.(*bytes.Buffer)
 			if !templ_7745c5c3_IsBuffer {
 				templ_7745c5c3_Buffer = templ.GetBuffer()
@@ -708,7 +904,7 @@ func createCommunityPage() templ.Component {
 			}
 			return templ_7745c5c3_Err
 		})
-		templ_7745c5c3_Err = basePage().Render(templ.WithChildren(ctx, templ_7745c5c3_Var30), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = basePage().Render(templ.WithChildren(ctx, templ_7745c5c3_Var38), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -727,17 +923,17 @@ func basePage() templ.Component {
 			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var31 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var31 == nil {
-			templ_7745c5c3_Var31 = templ.NopComponent
+		templ_7745c5c3_Var39 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var39 == nil {
+			templ_7745c5c3_Var39 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html><head><script src=\"https://unpkg.com/htmx.org@1.9.10\"></script><title>Comradary</title></head>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var32 = []any{background()}
-		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var32...)
+		var templ_7745c5c3_Var40 = []any{background()}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var40...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -745,7 +941,7 @@ func basePage() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var32).String()))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var40).String()))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -753,7 +949,7 @@ func basePage() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ_7745c5c3_Var31.Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = templ_7745c5c3_Var39.Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -780,12 +976,12 @@ func selectCountry() templ.Component {
 			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var33 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var33 == nil {
-			templ_7745c5c3_Var33 = templ.NopComponent
+		templ_7745c5c3_Var41 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var41 == nil {
+			templ_7745c5c3_Var41 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<select class=\"form-select\" id=\"country\" name=\"country\"><option>select country </option> <option value=\"AF\">Afghanistan</option> <option value=\"AX\">Aland Islands</option> <option value=\"AL\">Albania</option> <option value=\"DZ\">Algeria</option> <option value=\"AS\">American Samoa</option> <option value=\"AD\">Andorra</option> <option value=\"AO\">Angola</option> <option value=\"AI\">Anguilla</option> <option value=\"AQ\">Antarctica</option> <option value=\"AG\">Antigua and Barbuda</option> <option value=\"AR\">Argentina</option> <option value=\"AM\">Armenia</option> <option value=\"AW\">Aruba</option> <option value=\"AU\">Australia</option> <option value=\"AT\">Austria</option> <option value=\"AZ\">Azerbaijan</option> <option value=\"BS\">Bahamas</option> <option value=\"BH\">Bahrain</option> <option value=\"BD\">Bangladesh</option> <option value=\"BB\">Barbados</option> <option value=\"BY\">Belarus</option> <option value=\"BE\">Belgium</option> <option value=\"BZ\">Belize</option> <option value=\"BJ\">Benin</option> <option value=\"BM\">Bermuda</option> <option value=\"BT\">Bhutan</option> <option value=\"BO\">Bolivia</option> <option value=\"BQ\">Bonaire, Sint Eustatius and Saba</option> <option value=\"BA\">Bosnia and Herzegovina</option> <option value=\"BW\">Botswana</option> <option value=\"BV\">Bouvet Island</option> <option value=\"BR\">Brazil</option> <option value=\"IO\">British Indian Ocean Territory</option> <option value=\"BN\">Brunei Darussalam</option> <option value=\"BG\">Bulgaria</option> <option value=\"BF\">Burkina Faso</option> <option value=\"BI\">Burundi</option> <option value=\"KH\">Cambodia</option> <option value=\"CM\">Cameroon</option> <option value=\"CA\">Canada</option> <option value=\"CV\">Cape Verde</option> <option value=\"KY\">Cayman Islands</option> <option value=\"CF\">Central African Republic</option> <option value=\"TD\">Chad</option> <option value=\"CL\">Chile</option> <option value=\"CN\">China</option> <option value=\"CX\">Christmas Island</option> <option value=\"CC\">Cocos (Keeling) Islands</option> <option value=\"CO\">Colombia</option> <option value=\"KM\">Comoros</option> <option value=\"CG\">Congo</option> <option value=\"CD\">Congo, Democratic Republic of the Congo</option> <option value=\"CK\">Cook Islands</option> <option value=\"CR\">Costa Rica</option> <option value=\"CI\">Cote D'Ivoire</option> <option value=\"HR\">Croatia</option> <option value=\"CU\">Cuba</option> <option value=\"CW\">Curacao</option> <option value=\"CY\">Cyprus</option> <option value=\"CZ\">Czech Republic</option> <option value=\"DK\">Denmark</option> <option value=\"DJ\">Djibouti</option> <option value=\"DM\">Dominica</option> <option value=\"DO\">Dominican Republic</option> <option value=\"EC\">Ecuador</option> <option value=\"EG\">Egypt</option> <option value=\"SV\">El Salvador</option> <option value=\"GQ\">Equatorial Guinea</option> <option value=\"ER\">Eritrea</option> <option value=\"EE\">Estonia</option> <option value=\"ET\">Ethiopia</option> <option value=\"FK\">Falkland Islands (Malvinas)</option> <option value=\"FO\">Faroe Islands</option> <option value=\"FJ\">Fiji</option> <option value=\"FI\">Finland</option> <option value=\"FR\">France</option> <option value=\"GF\">French Guiana</option> <option value=\"PF\">French Polynesia</option> <option value=\"TF\">French Southern Territories</option> <option value=\"GA\">Gabon</option> <option value=\"GM\">Gambia</option> <option value=\"GE\">Georgia</option> <option value=\"DE\">Germany</option> <option value=\"GH\">Ghana</option> <option value=\"GI\">Gibraltar</option> <option value=\"GR\">Greece</option> <option value=\"GL\">Greenland</option> <option value=\"GD\">Grenada</option> <option value=\"GP\">Guadeloupe</option> <option value=\"GU\">Guam</option> <option value=\"GT\">Guatemala</option> <option value=\"GG\">Guernsey</option> <option value=\"GN\">Guinea</option> <option value=\"GW\">Guinea-Bissau</option> <option value=\"GY\">Guyana</option> <option value=\"HT\">Haiti</option> <option value=\"HM\">Heard Island and Mcdonald Islands</option> <option value=\"VA\">Holy See (Vatican City State)</option> <option value=\"HN\">Honduras</option> <option value=\"HK\">Hong Kong</option> <option value=\"HU\">Hungary</option> <option value=\"IS\">Iceland</option> <option value=\"IN\">India</option> <option value=\"ID\">Indonesia</option> <option value=\"IR\">Iran, Islamic Republic of</option> <option value=\"IQ\">Iraq</option> <option value=\"IE\">Ireland</option> <option value=\"IM\">Isle of Man</option> <option value=\"IL\">Israel</option> <option value=\"IT\">Italy</option> <option value=\"JM\">Jamaica</option> <option value=\"JP\">Japan</option> <option value=\"JE\">Jersey</option> <option value=\"JO\">Jordan</option> <option value=\"KZ\">Kazakhstan</option> <option value=\"KE\">Kenya</option> <option value=\"KI\">Kiribati</option> <option value=\"KP\">Korea, Democratic People's Republic of</option> <option value=\"KR\">Korea, Republic of</option> <option value=\"XK\">Kosovo</option> <option value=\"KW\">Kuwait</option> <option value=\"KG\">Kyrgyzstan</option> <option value=\"LA\">Lao People's Democratic Republic</option> <option value=\"LV\">Latvia</option> <option value=\"LB\">Lebanon</option> <option value=\"LS\">Lesotho</option> <option value=\"LR\">Liberia</option> <option value=\"LY\">Libyan Arab Jamahiriya</option> <option value=\"LI\">Liechtenstein</option> <option value=\"LT\">Lithuania</option> <option value=\"LU\">Luxembourg</option> <option value=\"MO\">Macao</option> <option value=\"MK\">Macedonia, the Former Yugoslav Republic of</option> <option value=\"MG\">Madagascar</option> <option value=\"MW\">Malawi</option> <option value=\"MY\">Malaysia</option> <option value=\"MV\">Maldives</option> <option value=\"ML\">Mali</option> <option value=\"MT\">Malta</option> <option value=\"MH\">Marshall Islands</option> <option value=\"MQ\">Martinique</option> <option value=\"MR\">Mauritania</option> <option value=\"MU\">Mauritius</option> <option value=\"YT\">Mayotte</option> <option value=\"MX\">Mexico</option> <option value=\"FM\">Micronesia, Federated States of</option> <option value=\"MD\">Moldova, Republic of</option> <option value=\"MC\">Monaco</option> <option value=\"MN\">Mongolia</option> <option value=\"ME\">Montenegro</option> <option value=\"MS\">Montserrat</option> <option value=\"MA\">Morocco</option> <option value=\"MZ\">Mozambique</option> <option value=\"MM\">Myanmar</option> <option value=\"NA\">Namibia</option> <option value=\"NR\">Nauru</option> <option value=\"NP\">Nepal</option> <option value=\"NL\">Netherlands</option> <option value=\"AN\">Netherlands Antilles</option> <option value=\"NC\">New Caledonia</option> <option value=\"NZ\">New Zealand</option> <option value=\"NI\">Nicaragua</option> <option value=\"NE\">Niger</option> <option value=\"NG\">Nigeria</option> <option value=\"NU\">Niue</option> <option value=\"NF\">Norfolk Island</option> <option value=\"MP\">Northern Mariana Islands</option> <option value=\"NO\">Norway</option> <option value=\"OM\">Oman</option> <option value=\"PK\">Pakistan</option> <option value=\"PW\">Palau</option> <option value=\"PS\">Palestinian Territory, Occupied</option> <option value=\"PA\">Panama</option> <option value=\"PG\">Papua New Guinea</option> <option value=\"PY\">Paraguay</option> <option value=\"PE\">Peru</option> <option value=\"PH\">Philippines</option> <option value=\"PN\">Pitcairn</option> <option value=\"PL\">Poland</option> <option value=\"PT\">Portugal</option> <option value=\"PR\">Puerto Rico</option> <option value=\"QA\">Qatar</option> <option value=\"RE\">Reunion</option> <option value=\"RO\">Romania</option> <option value=\"RU\">Russian Federation</option> <option value=\"RW\">Rwanda</option> <option value=\"BL\">Saint Barthelemy</option> <option value=\"SH\">Saint Helena</option> <option value=\"KN\">Saint Kitts and Nevis</option> <option value=\"LC\">Saint Lucia</option> <option value=\"MF\">Saint Martin</option> <option value=\"PM\">Saint Pierre and Miquelon</option> <option value=\"VC\">Saint Vincent and the Grenadines</option> <option value=\"WS\">Samoa</option> <option value=\"SM\">San Marino</option> <option value=\"ST\">Sao Tome and Principe</option> <option value=\"SA\">Saudi Arabia</option> <option value=\"SN\">Senegal</option> <option value=\"RS\">Serbia</option> <option value=\"CS\">Serbia and Montenegro</option> <option value=\"SC\">Seychelles</option> <option value=\"SL\">Sierra Leone</option> <option value=\"SG\">Singapore</option> <option value=\"SX\">Sint Maarten</option> <option value=\"SK\">Slovakia</option> <option value=\"SI\">Slovenia</option> <option value=\"SB\">Solomon Islands</option> <option value=\"SO\">Somalia</option> <option value=\"ZA\">South Africa</option> <option value=\"GS\">South Georgia and the South Sandwich Islands</option> <option value=\"SS\">South Sudan</option> <option value=\"ES\">Spain</option> <option value=\"LK\">Sri Lanka</option> <option value=\"SD\">Sudan</option> <option value=\"SR\">Suriname</option> <option value=\"SJ\">Svalbard and Jan Mayen</option> <option value=\"SZ\">Swaziland</option> <option value=\"SE\">Sweden</option> <option value=\"CH\">Switzerland</option> <option value=\"SY\">Syrian Arab Republic</option> <option value=\"TW\">Taiwan, Province of China</option> <option value=\"TJ\">Tajikistan</option> <option value=\"TZ\">Tanzania, United Republic of</option> <option value=\"TH\">Thailand</option> <option value=\"TL\">Timor-Leste</option> <option value=\"TG\">Togo</option> <option value=\"TK\">Tokelau</option> <option value=\"TO\">Tonga</option> <option value=\"TT\">Trinidad and Tobago</option> <option value=\"TN\">Tunisia</option> <option value=\"TR\">Turkey</option> <option value=\"TM\">Turkmenistan</option> <option value=\"TC\">Turks and Caicos Islands</option> <option value=\"TV\">Tuvalu</option> <option value=\"UG\">Uganda</option> <option value=\"UA\">Ukraine</option> <option value=\"AE\">United Arab Emirates</option> <option value=\"GB\">United Kingdom</option> <option value=\"US\">United States</option> <option value=\"UM\">United States Minor Outlying Islands</option> <option value=\"UY\">Uruguay</option> <option value=\"UZ\">Uzbekistan</option> <option value=\"VU\">Vanuatu</option> <option value=\"VE\">Venezuela</option> <option value=\"VN\">Viet Nam</option> <option value=\"VG\">Virgin Islands, British</option> <option value=\"VI\">Virgin Islands, U.s.</option> <option value=\"WF\">Wallis and Futuna</option> <option value=\"EH\">Western Sahara</option> <option value=\"YE\">Yemen</option> <option value=\"ZM\">Zambia</option> <option value=\"ZW\">Zimbabwe</option></select>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<select class=\"form-select\" id=\"country\" name=\"country\"><option value=\"ALL\">All Countries </option> <option value=\"AF\">Afghanistan</option> <option value=\"AX\">Aland Islands</option> <option value=\"AL\">Albania</option> <option value=\"DZ\">Algeria</option> <option value=\"AS\">American Samoa</option> <option value=\"AD\">Andorra</option> <option value=\"AO\">Angola</option> <option value=\"AI\">Anguilla</option> <option value=\"AQ\">Antarctica</option> <option value=\"AG\">Antigua and Barbuda</option> <option value=\"AR\">Argentina</option> <option value=\"AM\">Armenia</option> <option value=\"AW\">Aruba</option> <option value=\"AU\">Australia</option> <option value=\"AT\">Austria</option> <option value=\"AZ\">Azerbaijan</option> <option value=\"BS\">Bahamas</option> <option value=\"BH\">Bahrain</option> <option value=\"BD\">Bangladesh</option> <option value=\"BB\">Barbados</option> <option value=\"BY\">Belarus</option> <option value=\"BE\">Belgium</option> <option value=\"BZ\">Belize</option> <option value=\"BJ\">Benin</option> <option value=\"BM\">Bermuda</option> <option value=\"BT\">Bhutan</option> <option value=\"BO\">Bolivia</option> <option value=\"BQ\">Bonaire, Sint Eustatius and Saba</option> <option value=\"BA\">Bosnia and Herzegovina</option> <option value=\"BW\">Botswana</option> <option value=\"BV\">Bouvet Island</option> <option value=\"BR\">Brazil</option> <option value=\"IO\">British Indian Ocean Territory</option> <option value=\"BN\">Brunei Darussalam</option> <option value=\"BG\">Bulgaria</option> <option value=\"BF\">Burkina Faso</option> <option value=\"BI\">Burundi</option> <option value=\"KH\">Cambodia</option> <option value=\"CM\">Cameroon</option> <option value=\"CA\">Canada</option> <option value=\"CV\">Cape Verde</option> <option value=\"KY\">Cayman Islands</option> <option value=\"CF\">Central African Republic</option> <option value=\"TD\">Chad</option> <option value=\"CL\">Chile</option> <option value=\"CN\">China</option> <option value=\"CX\">Christmas Island</option> <option value=\"CC\">Cocos (Keeling) Islands</option> <option value=\"CO\">Colombia</option> <option value=\"KM\">Comoros</option> <option value=\"CG\">Congo</option> <option value=\"CD\">Congo, Democratic Republic of the Congo</option> <option value=\"CK\">Cook Islands</option> <option value=\"CR\">Costa Rica</option> <option value=\"CI\">Cote D'Ivoire</option> <option value=\"HR\">Croatia</option> <option value=\"CU\">Cuba</option> <option value=\"CW\">Curacao</option> <option value=\"CY\">Cyprus</option> <option value=\"CZ\">Czech Republic</option> <option value=\"DK\">Denmark</option> <option value=\"DJ\">Djibouti</option> <option value=\"DM\">Dominica</option> <option value=\"DO\">Dominican Republic</option> <option value=\"EC\">Ecuador</option> <option value=\"EG\">Egypt</option> <option value=\"SV\">El Salvador</option> <option value=\"GQ\">Equatorial Guinea</option> <option value=\"ER\">Eritrea</option> <option value=\"EE\">Estonia</option> <option value=\"ET\">Ethiopia</option> <option value=\"FK\">Falkland Islands (Malvinas)</option> <option value=\"FO\">Faroe Islands</option> <option value=\"FJ\">Fiji</option> <option value=\"FI\">Finland</option> <option value=\"FR\">France</option> <option value=\"GF\">French Guiana</option> <option value=\"PF\">French Polynesia</option> <option value=\"TF\">French Southern Territories</option> <option value=\"GA\">Gabon</option> <option value=\"GM\">Gambia</option> <option value=\"GE\">Georgia</option> <option value=\"DE\">Germany</option> <option value=\"GH\">Ghana</option> <option value=\"GI\">Gibraltar</option> <option value=\"GR\">Greece</option> <option value=\"GL\">Greenland</option> <option value=\"GD\">Grenada</option> <option value=\"GP\">Guadeloupe</option> <option value=\"GU\">Guam</option> <option value=\"GT\">Guatemala</option> <option value=\"GG\">Guernsey</option> <option value=\"GN\">Guinea</option> <option value=\"GW\">Guinea-Bissau</option> <option value=\"GY\">Guyana</option> <option value=\"HT\">Haiti</option> <option value=\"HM\">Heard Island and Mcdonald Islands</option> <option value=\"VA\">Holy See (Vatican City State)</option> <option value=\"HN\">Honduras</option> <option value=\"HK\">Hong Kong</option> <option value=\"HU\">Hungary</option> <option value=\"IS\">Iceland</option> <option value=\"IN\">India</option> <option value=\"ID\">Indonesia</option> <option value=\"IR\">Iran, Islamic Republic of</option> <option value=\"IQ\">Iraq</option> <option value=\"IE\">Ireland</option> <option value=\"IM\">Isle of Man</option> <option value=\"IL\">Israel</option> <option value=\"IT\">Italy</option> <option value=\"JM\">Jamaica</option> <option value=\"JP\">Japan</option> <option value=\"JE\">Jersey</option> <option value=\"JO\">Jordan</option> <option value=\"KZ\">Kazakhstan</option> <option value=\"KE\">Kenya</option> <option value=\"KI\">Kiribati</option> <option value=\"KP\">Korea, Democratic People's Republic of</option> <option value=\"KR\">Korea, Republic of</option> <option value=\"XK\">Kosovo</option> <option value=\"KW\">Kuwait</option> <option value=\"KG\">Kyrgyzstan</option> <option value=\"LA\">Lao People's Democratic Republic</option> <option value=\"LV\">Latvia</option> <option value=\"LB\">Lebanon</option> <option value=\"LS\">Lesotho</option> <option value=\"LR\">Liberia</option> <option value=\"LY\">Libyan Arab Jamahiriya</option> <option value=\"LI\">Liechtenstein</option> <option value=\"LT\">Lithuania</option> <option value=\"LU\">Luxembourg</option> <option value=\"MO\">Macao</option> <option value=\"MK\">Macedonia, the Former Yugoslav Republic of</option> <option value=\"MG\">Madagascar</option> <option value=\"MW\">Malawi</option> <option value=\"MY\">Malaysia</option> <option value=\"MV\">Maldives</option> <option value=\"ML\">Mali</option> <option value=\"MT\">Malta</option> <option value=\"MH\">Marshall Islands</option> <option value=\"MQ\">Martinique</option> <option value=\"MR\">Mauritania</option> <option value=\"MU\">Mauritius</option> <option value=\"YT\">Mayotte</option> <option value=\"MX\">Mexico</option> <option value=\"FM\">Micronesia, Federated States of</option> <option value=\"MD\">Moldova, Republic of</option> <option value=\"MC\">Monaco</option> <option value=\"MN\">Mongolia</option> <option value=\"ME\">Montenegro</option> <option value=\"MS\">Montserrat</option> <option value=\"MA\">Morocco</option> <option value=\"MZ\">Mozambique</option> <option value=\"MM\">Myanmar</option> <option value=\"NA\">Namibia</option> <option value=\"NR\">Nauru</option> <option value=\"NP\">Nepal</option> <option value=\"NL\">Netherlands</option> <option value=\"AN\">Netherlands Antilles</option> <option value=\"NC\">New Caledonia</option> <option value=\"NZ\">New Zealand</option> <option value=\"NI\">Nicaragua</option> <option value=\"NE\">Niger</option> <option value=\"NG\">Nigeria</option> <option value=\"NU\">Niue</option> <option value=\"NF\">Norfolk Island</option> <option value=\"MP\">Northern Mariana Islands</option> <option value=\"NO\">Norway</option> <option value=\"OM\">Oman</option> <option value=\"PK\">Pakistan</option> <option value=\"PW\">Palau</option> <option value=\"PS\">Palestinian Territory, Occupied</option> <option value=\"PA\">Panama</option> <option value=\"PG\">Papua New Guinea</option> <option value=\"PY\">Paraguay</option> <option value=\"PE\">Peru</option> <option value=\"PH\">Philippines</option> <option value=\"PN\">Pitcairn</option> <option value=\"PL\">Poland</option> <option value=\"PT\">Portugal</option> <option value=\"PR\">Puerto Rico</option> <option value=\"QA\">Qatar</option> <option value=\"RE\">Reunion</option> <option value=\"RO\">Romania</option> <option value=\"RU\">Russian Federation</option> <option value=\"RW\">Rwanda</option> <option value=\"BL\">Saint Barthelemy</option> <option value=\"SH\">Saint Helena</option> <option value=\"KN\">Saint Kitts and Nevis</option> <option value=\"LC\">Saint Lucia</option> <option value=\"MF\">Saint Martin</option> <option value=\"PM\">Saint Pierre and Miquelon</option> <option value=\"VC\">Saint Vincent and the Grenadines</option> <option value=\"WS\">Samoa</option> <option value=\"SM\">San Marino</option> <option value=\"ST\">Sao Tome and Principe</option> <option value=\"SA\">Saudi Arabia</option> <option value=\"SN\">Senegal</option> <option value=\"RS\">Serbia</option> <option value=\"CS\">Serbia and Montenegro</option> <option value=\"SC\">Seychelles</option> <option value=\"SL\">Sierra Leone</option> <option value=\"SG\">Singapore</option> <option value=\"SX\">Sint Maarten</option> <option value=\"SK\">Slovakia</option> <option value=\"SI\">Slovenia</option> <option value=\"SB\">Solomon Islands</option> <option value=\"SO\">Somalia</option> <option value=\"ZA\">South Africa</option> <option value=\"GS\">South Georgia and the South Sandwich Islands</option> <option value=\"SS\">South Sudan</option> <option value=\"ES\">Spain</option> <option value=\"LK\">Sri Lanka</option> <option value=\"SD\">Sudan</option> <option value=\"SR\">Suriname</option> <option value=\"SJ\">Svalbard and Jan Mayen</option> <option value=\"SZ\">Swaziland</option> <option value=\"SE\">Sweden</option> <option value=\"CH\">Switzerland</option> <option value=\"SY\">Syrian Arab Republic</option> <option value=\"TW\">Taiwan, Province of China</option> <option value=\"TJ\">Tajikistan</option> <option value=\"TZ\">Tanzania, United Republic of</option> <option value=\"TH\">Thailand</option> <option value=\"TL\">Timor-Leste</option> <option value=\"TG\">Togo</option> <option value=\"TK\">Tokelau</option> <option value=\"TO\">Tonga</option> <option value=\"TT\">Trinidad and Tobago</option> <option value=\"TN\">Tunisia</option> <option value=\"TR\">Turkey</option> <option value=\"TM\">Turkmenistan</option> <option value=\"TC\">Turks and Caicos Islands</option> <option value=\"TV\">Tuvalu</option> <option value=\"UG\">Uganda</option> <option value=\"UA\">Ukraine</option> <option value=\"AE\">United Arab Emirates</option> <option value=\"GB\">United Kingdom</option> <option value=\"US\">United States</option> <option value=\"UM\">United States Minor Outlying Islands</option> <option value=\"UY\">Uruguay</option> <option value=\"UZ\">Uzbekistan</option> <option value=\"VU\">Vanuatu</option> <option value=\"VE\">Venezuela</option> <option value=\"VN\">Viet Nam</option> <option value=\"VG\">Virgin Islands, British</option> <option value=\"VI\">Virgin Islands, U.s.</option> <option value=\"WF\">Wallis and Futuna</option> <option value=\"EH\">Western Sahara</option> <option value=\"YE\">Yemen</option> <option value=\"ZM\">Zambia</option> <option value=\"ZW\">Zimbabwe</option></select>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

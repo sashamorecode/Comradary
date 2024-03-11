@@ -45,6 +45,7 @@ type Offer struct {
 	Photos      []Photo `gorm:"foreignKey:OfferID"`
 	UserID      uint    `json:"user_id"`
 	CommunityID uint    `json:"community_id"`
+	CreatedAt   time.Time
 }
 
 type Request struct {
@@ -98,7 +99,7 @@ func SetupRoutes(db *gorm.DB, router *gin.Engine) {
 	router.GET("/myOffers", GetOffersByUserId(db))
 	router.GET("/images/:id", GetImageById(db))
 	router.GET("/communities/:country", GetCommunityByCountry(db))
-
+	router.GET("/userCommunities", GetUserCommunities(db))
 }
 
 
@@ -463,6 +464,15 @@ func GetCommunityByCountry(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(200, communitys)
 			return 
 		}
+		if country == "ALL" {
+			result := db.Find(&communitys)
+			if result.Error != nil {
+				c.JSON(400, gin.H{"error": result.Error.Error()})
+				return 
+			}
+			c.JSON(200, communitys)
+			return 
+		}
 		result := db.Find(&communitys, "country = ?", country)
 		if result.Error != nil {
 			c.JSON(400, gin.H{"error": result.Error.Error()})
@@ -471,6 +481,31 @@ func GetCommunityByCountry(db *gorm.DB) gin.HandlerFunc {
 		c.JSON(200, communitys)
 	}
 }
+
+func GetUserCommunities(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var user User
+		var uCom []Community
+		tokenString := c.Request.Header.Get("token")
+		userID, err := validateJWT(tokenString)
+		if err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		result := db.First(&user, userID)
+		if result.Error != nil {
+			c.JSON(400, gin.H{"error": result.Error.Error()})
+			return
+		}
+		err = db.Model(&user).Association("Communities").Find(&uCom)
+		if err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(200, uCom)
+	}
+}
+
 
 
 func userBelongsToCommunity(db *gorm.DB, userID string, communityID string) (bool, error) {
@@ -605,7 +640,6 @@ func GetOffersByCommunityId(db *gorm.DB) gin.HandlerFunc {
 
 func GetOffersByUserId(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var offers []Offer
 		var user User
 		var userCommunities []Community
 		tokenString := c.Request.Header.Get("token")
@@ -631,20 +665,22 @@ func GetOffersByUserId(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(400, gin.H{"error": err})
 			return
 		}
-		err = db.Model(&userCommunities).Association("Offers").Find(&offers)
-		if err != nil {
-			c.JSON(400, gin.H{"error": err})
-			return
-		}
-		for i, offer := range offers {
-			err = db.Model(&offer).Association("Photos").Find(&offers[i].Photos)
+		for i := range userCommunities {
+			err = db.Model(&userCommunities[i]).Association("Offers").Find(&userCommunities[i].Offers)
 			if err != nil {
 				c.JSON(400, gin.H{"error": err})
-				return
+				return 
+			}
+			for j, offer := range userCommunities[i].Offers {
+				err = db.Model(&offer).Association("Photos").Find(&userCommunities[i].Offers[j].Photos)
+				if err != nil {
+					c.JSON(400, gin.H{"error": err})
+					return
+				}
 			}
 		}
 
-		c.JSON(200, offers)
+		c.JSON(200, userCommunities)
 	}
 }
 

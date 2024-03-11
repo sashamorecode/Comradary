@@ -16,9 +16,9 @@ templ userSignupPage() {
 		<div id="signup" style="display: flex; justify-content: center; margin-top: 10vh; flex-direction: column; align-items: center;">
 		<h1>Sign Up</h1>
 			<form action="/handelSignup" method="post">
-				<input type="text" name="username" placeholder="Username" required></input>
-				<br/>
 				<input type="email" name="email" placeholder="Email" required></input>
+				<br/>
+				<input type="text" name="username" placeholder="Username" required></input>
 				<br/>
 				<input type="password" name="password" placeholder="Password" required></input>
 				<br/>
@@ -46,15 +46,25 @@ css body() {
 	background-color: #50298c;
 
 }
+
+
 templ createOfferPage() {
 	@basePage() {
-	<div style="display: flex; justify-content: center; margin-top: 10vh; flex-direction: column; align-items: center;">
-	<h1>Create Offer</h1>
-	<form id="form" hx-encoding="multipart/form-data" hx-post="/handelCreateOffer" style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+	<div id="pageDiv" style="display: flex; justify-content: center; margin-top: 10vh; flex-direction: column; align-items: center;">
+	<form id="form" hx-encoding="multipart/form-data" hx-post="/handelCreateOffer" 
+	hx-swap="outerHTML"  hx-target="#pageDiv"
+	style="display: flex; flex-direction: column; justify-content: center; align-items: center;">
+		<h1>Create Offer</h1>
 		<input type="text" name="title" placeholder="Title" required></input>
-		<textarea name="description" placeholder="Description" required></textarea>
+		<textarea name="description" placeholder="Description" required
+			style="width: 30em; height: 10em;">
+			></textarea>
 		<input type="file" name="image" style="margin-left: 4.7em;"></input>
-		<input type="number" name="community_id" placeholder="Community ID" required></input>
+		<select id="community_id" name="community_id" placeholder="Community ID" required
+			hx-get="/userCommunitiesList" hx-swap="outerHTML"
+			hx-trigger="load" hx-target="#community_id">
+			<option>Loading...</option>
+		</select>
 		<input type="submit" value="Create Offer"></input>
 	</form>
 	</div>
@@ -79,13 +89,15 @@ css offerContainer() {
 
 css title() {
 	color: #ffffff;
-	width: 20%;
-	margin-left: 5%;
+	margin-left: 2.5%;
+	margin-top: 0px;
+	margin-bottom: 0px;
 }
 css description() {
 	color: #ffffff;
 	width: 60%;
-	margin-left: 10%;
+	margin-left: 5%;
+	margin-top: 0px;
 }
 css image() {
 	width: 30%;
@@ -105,6 +117,50 @@ css navBarLink() {
 	text-decoration: none;
 }
 
+css communityName() {
+	color: #ffffff;
+	font-size: .8em;
+	margin-left: 2.5%;
+	margin-top: 0.1em;
+	margin-bottom: 0em;
+}
+
+css timeStamp() {
+	color: #ffffff;
+	font-size: .8em;
+	margin-left: 2.5%;
+	margin-top: 0.1em;
+	margin-bottom: 0em;
+}
+
+css offerHeader() {
+	margin-bottom: 0.5em;
+	background-color: #643ca3;
+	border-radius: 0.4em;
+	padding-top: 0.5em;
+	padding-bottom: 0.5em;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+}
+
+css offerHeaderLeft() {
+	display: flex;
+	flex-direction: column;
+	justify-content: start;
+	flex-grow: 1;
+}
+
+
+css offerLink() {
+	color: #ffffff;
+	margin: 5%;
+	margin-top: 0.1em;
+	text-decoration: thin;
+	color: #ffffff;
+	background-color: #643ca3;
+}
+
 templ navBar() {
 	<nav style="display: flex; justify-content: center; flex-direction: column;
 		position: fixed; top: 0; left: 2vw; width: 10vw; height:100vh; border-radius: 0.4em;
@@ -122,6 +178,7 @@ templ navBar() {
 
 
 
+
 templ offerPage(offers []Offer) {
 	@basePage() {
 	<h1 style="text-align: center; 
@@ -131,14 +188,23 @@ templ offerPage(offers []Offer) {
 	for _, offer := range offers {
 		<li class={offerContainer()}>
 			<div style="display: flex; flex-direction: column; justify-content: top; width: 70%;">
-				<h3 class={title()}>{offer.Title}</h3>
+				<div class={offerHeader()}>
+					<div class={offerHeaderLeft()}>
+					<h3 class={title()}>{offer.Title}</h3>
+					<p  class={communityName()}>Posted To: {offer.CommunityName}</p>
+					<p  class={timeStamp()}> Posted At: { 
+					offer.CreatedAt}</p>
+					</div>
+
+					<a class={offerLink()} href={ templ.SafeURL("/viewOffer/" + strconv.Itoa(offer.ID))}>View Offer</a>
+				</div>
 				<p  class={description()}>{offer.Description}</p>
 			</div>
 			<div class={image()}>
 			if len(offer.Photos) > 0 {
 				<img src={"http://127.0.0.1:8000/images/" +strconv.Itoa(offer.Photos[0].ID)} 
-			     	style="width: 100%; border-radius: 0.4em; max-height: 25vh;
-				"></img>
+			     	style="width: 100%; border-radius: 0.4em; max-height: 25vh;"
+				loading="lazy"></img>
 			     }
 			</div>
 		</li>
@@ -160,7 +226,7 @@ templ communityOptions(communities []Community) {
 templ joinCommunityPage() {
 	@basePage() {
 		<div hx-get="/communitiesList" hx-swap="outerHTML"
-	             hx-trigger="change from:#country" hx-target="#optList"
+	             hx-trigger="change from:#country, load" hx-target="#optList"
 		     hx-include="#country"
 		     style="display: flex; justify-content: center; margin-top: 10vh;">
 		<form action="/handelJoinCommunity" method="post">
@@ -203,7 +269,7 @@ templ basePage() {
 
 templ selectCountry() {
 <select class="form-select" id="country" name="country">
-    <option> select country </option>
+    <option value="ALL"> All Countries </option>
     <option value="AF">Afghanistan</option>
     <option value="AX">Aland Islands</option>
     <option value="AL">Albania</option>
