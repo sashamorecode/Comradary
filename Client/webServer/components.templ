@@ -198,7 +198,10 @@ templ offerPage(offers []Offer) {
 					offer.CreatedAt}</p>
 					</div>
 
-					<a class={offerLink()} href={ templ.SafeURL("/viewOffer?offerID=" + strconv.Itoa(offer.ID))}>View Offer</a>
+					<a class={offerLink()} 
+					href={ templ.SafeURL("/viewOffer?offerID=" + 
+					strconv.Itoa(offer.ID) + "&communityName=" + offer.CommunityName)}>
+					View Offer</a>
 				</div>
 				<p  class={description()}>{offer.Description}</p>
 			</div>

@@ -597,6 +597,7 @@ func generateOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	offer.CreatedAt = convertTime(offer.CreatedAt)
+	offer.CommunityName = r.URL.Query().Get("communityName")
 	err = viewOfferPage(offer).Render(r.Context(), w)
 	if err != nil {
 		fmt.Println(err)
