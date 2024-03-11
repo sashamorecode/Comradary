@@ -100,6 +100,7 @@ func SetupRoutes(db *gorm.DB, router *gin.Engine) {
 	router.GET("/images/:id", GetImageById(db))
 	router.GET("/communities/:country", GetCommunityByCountry(db))
 	router.GET("/userCommunities", GetUserCommunities(db))
+	router.GET("/offer/:id", GetOfferById(db))
 }
 
 
@@ -681,6 +682,53 @@ func GetOffersByUserId(db *gorm.DB) gin.HandlerFunc {
 		}
 
 		c.JSON(200, userCommunities)
+	}
+}
+
+func isIn(user User, offer Offer) bool {
+	for _, community := range user.Communities {
+		if community.ID == offer.CommunityID {
+			return true
+		}
+	}
+	return false
+}
+func GetOfferById(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var offer Offer
+		var user User
+		id := c.Param("id")
+		tokenString := c.Request.Header.Get("token")
+		userID, err := validateJWT(tokenString)
+		if err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		results := db.First(&offer, id)
+		if results.Error != nil {
+			c.JSON(400, gin.H{"error": results.Error.Error()})
+			return
+		}
+		results = db.First(&user, userID)
+		if results.Error != nil {
+			c.JSON(400, gin.H{"error": results.Error.Error()})
+			return
+		}
+		err = db.Model(&user).Association("Communities").Find(&user.Communities)
+		if err != nil {
+			c.JSON(400, gin.H{"error": err })
+			return 
+		}
+		if !isIn(user, offer) {
+			c.JSON(400, gin.H{"error": "user does not belong to community"})
+			return 
+		}
+		err = db.Model(&offer).Association("Photos").Find(&offer.Photos)
+		if err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		c.JSON(200, offer)
 	}
 }
 

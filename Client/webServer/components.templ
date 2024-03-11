@@ -57,8 +57,7 @@ templ createOfferPage() {
 		<h1>Create Offer</h1>
 		<input type="text" name="title" placeholder="Title" required></input>
 		<textarea name="description" placeholder="Description" required
-			style="width: 30em; height: 10em;">
-			></textarea>
+			style="width: 30em; height: 10em;"></textarea>
 		<input type="file" name="image" style="margin-left: 4.7em;"></input>
 		<select id="community_id" name="community_id" placeholder="Community ID" required
 			hx-get="/userCommunitiesList" hx-swap="outerHTML"
@@ -98,11 +97,14 @@ css description() {
 	width: 60%;
 	margin-left: 5%;
 	margin-top: 0px;
+	overflow: hidden;
 }
+
 css image() {
 	width: 30%;
-	max-height: 70%;
-	margin: 1%;
+	max-height: 100%;
+	border-radius: 0.4em;
+	margin-left: 0.5%;
 }
 
 css offerList() {
@@ -187,7 +189,7 @@ templ offerPage(offers []Offer) {
 	<ul class={offerList()}>
 	for _, offer := range offers {
 		<li class={offerContainer()}>
-			<div style="display: flex; flex-direction: column; justify-content: top; width: 70%;">
+			<div style="display: flex; flex-direction: column; justify-content: top; min-width: 70%; flex-grow:1;">
 				<div class={offerHeader()}>
 					<div class={offerHeaderLeft()}>
 					<h3 class={title()}>{offer.Title}</h3>
@@ -196,20 +198,40 @@ templ offerPage(offers []Offer) {
 					offer.CreatedAt}</p>
 					</div>
 
-					<a class={offerLink()} href={ templ.SafeURL("/viewOffer/" + strconv.Itoa(offer.ID))}>View Offer</a>
+					<a class={offerLink()} href={ templ.SafeURL("/viewOffer?offerID=" + strconv.Itoa(offer.ID))}>View Offer</a>
 				</div>
 				<p  class={description()}>{offer.Description}</p>
 			</div>
-			<div class={image()}>
 			if len(offer.Photos) > 0 {
 				<img src={"http://127.0.0.1:8000/images/" +strconv.Itoa(offer.Photos[0].ID)} 
-			     	style="width: 100%; border-radius: 0.4em; max-height: 25vh;"
+			     	class={image()}
 				loading="lazy"></img>
 			     }
-			</div>
 		</li>
 	}
 	</ul>
+	</div>
+	}
+}
+
+templ viewOfferPage(offer Offer) {
+	@basePage() {
+	<div id="offer" style="display: flex; justify-content: center;
+		margin-top: 10vh; align-items: center; flex-direction: column;
+		">
+		
+		<h1 style="text-align: center; max-width: 50vw;">
+		{offer.Title} </h1>
+		<p style="text-align: center; max-width: 50vw; ">
+		{offer.Description}</p>
+		<p>Posted To: {offer.CommunityName}</p>
+		<p>Posted At: {offer.CreatedAt}</p>
+
+		for _, photo := range offer.Photos {
+			<img src={"http://127.0.0.1:8000/images/" +strconv.Itoa(photo.ID)}
+			style="border-radius: 0.4em; margin-top: 1em; max-width: 50vw; max-height: 50vh;"
+			loading="lazy"></img>
+		}
 	</div>
 	}
 }

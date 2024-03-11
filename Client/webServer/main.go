@@ -283,34 +283,6 @@ func handleSignup(w http.ResponseWriter, r *http.Request) {
 }
 
 
-func getOffers(w http.ResponseWriter, r *http.Request) []Offer {
-	//client := &http.Client{}
-	req, err := http.NewRequest("GET", "http://localhost:8000/offers/1", bytes.NewBuffer([]byte("")))
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	defer req.Body.Close()
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		fmt.Println("Error: ", resp.Status)
-		return nil
-	}
-	// Decode JSON
-	offers := []Offer{}
-	err = json.NewDecoder(resp.Body).Decode(&offers)
-	if err != nil {
-		fmt.Println(err)
-		return nil
-	}
-	return offers
-}
 
 type communityOffer struct {
 	Name        string
@@ -434,6 +406,8 @@ func handleJoinCommunity(w http.ResponseWriter, r *http.Request) {
 	log.Println("Community joined")
 	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
 }
+
+
 
 func handleCreateCommunity(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
@@ -580,6 +554,57 @@ func generateUserCommunityList(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func generateOffer(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+		return
+	}
+	token, err := r.Cookie("token")
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+		return
+	}
+	id := r.URL.Query().Get("offerID")
+	req, err := http.NewRequest("GET", "http://localhost:8000/offer/"+id, bytes.NewBuffer([]byte("")))
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+	defer req.Body.Close()
+	req.Header.Set("token", token.Value)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("Error: ", resp.Status)
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+	offer := Offer{}
+	err = json.NewDecoder(resp.Body).Decode(&offer)
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
+		return
+	}
+	offer.CreatedAt = convertTime(offer.CreatedAt)
+	err = viewOfferPage(offer).Render(r.Context(), w)
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println(id, offer)
+		http.NotFound(w, r)
+	}
+}
+
 func main() {
 	http.HandleFunc("/", offerPagehandler)
 	http.Handle("/signup", templ.Handler(userSignupPage()))
@@ -595,6 +620,7 @@ func main() {
 	http.HandleFunc("/handelCreateCommunity", handleCreateCommunity)
 	http.HandleFunc("/communitiesList", generateCommunityList)
 	http.HandleFunc("/userCommunitiesList", generateUserCommunityList)
+	http.HandleFunc("/viewOffer", generateOffer)
 	fmt.Println("Server started at http://localhost:8080")
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
