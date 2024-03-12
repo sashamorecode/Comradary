@@ -232,14 +232,12 @@ func createOffer(w http.ResponseWriter, r *http.Request) {
 }
 
 func map2json(m map[string]string) []byte {
-
-	json := "{"
-	for k, v := range m {
-		json += fmt.Sprintf("\"%v\": \"%v\",", k, v)
+	json, err := json.Marshal(m) 
+	if err != nil {
+		fmt.Println(err)
+		return []byte("{}")
 	}
-	json = json[:len(json)-1]
-	json += "}"
-	return []byte(json)
+	return json
 }
 
 func handleSignup(w http.ResponseWriter, r *http.Request) {
@@ -604,7 +602,143 @@ func generateOffer(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(id, offer)
 		http.NotFound(w, r)
 	}
+	
 }
+
+type Message struct {
+	Text     string
+	isMyMsg  bool
+	OfferID  int
+}
+
+type MessageFromServer struct {
+	Text       string
+	SenderID   int 
+	ReceiverID int 
+	OfferID    int 
+}
+
+func renderMessageBox(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Println(err)
+		http.NotFound(w, r)
+	}
+	offerID := r.Form.Get("offerID")
+	token, err := r.Cookie("token")
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+		return
+	}
+	tokenID, err := r.Cookie("token_id")
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+		return
+	}
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect) 
+		return
+	}
+	req, err := http.NewRequest("GET", "http://localhost:8000/messages", bytes.NewBuffer([]byte("")))
+	if err != nil {
+		fmt.Println(err)
+		http.NotFound(w, r)
+		return
+	}
+	defer req.Body.Close()
+	req.Header.Set("token", token.Value)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		http.NotFound(w, r)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("Error: ", resp.Status)
+		http.NotFound(w, r)
+		return
+	}
+	messages := []MessageFromServer{}
+	err = json.NewDecoder(resp.Body).Decode(&messages)
+	if err != nil {
+		fmt.Println(err)
+		http.NotFound(w, r)
+		return
+	}
+	var relevantMessages []Message
+	for _, m := range messages {
+		if fmt.Sprint(m.OfferID) == offerID {
+			msg := Message{Text: m.Text, OfferID: m.OfferID}
+			if fmt.Sprint(m.SenderID) == tokenID.Value {
+				msg.isMyMsg = true 
+			} else {
+				msg.isMyMsg = false 
+			}
+			relevantMessages = append(relevantMessages, msg)
+		}
+		
+	}
+	err = chatBox(relevantMessages).Render(r.Context(), w)
+	if err != nil {
+		fmt.Println(err)
+		http.NotFound(w, r)
+	}
+}
+
+func handelSendMessage(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil {
+		fmt.Println(err)
+		http.NotFound(w, r)
+		return
+	}
+	token, err := r.Cookie("token")
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
+		return
+	}
+	offerID := r.Form.Get("offerID")
+	
+	payload := map[string]string{
+		"text":       r.Form.Get("message"),
+		"reciver_id": r.Form.Get("posterID"),
+		"offer_id":   offerID,
+	}
+	fmt.Printf("Payload: %v\n", payload)
+	encodedPayload := map2json(payload)
+	req, err := http.NewRequest("POST", "http://localhost:8000/messages", bytes.NewBuffer(encodedPayload))
+	if err != nil {
+		fmt.Println(err)
+		http.NotFound(w, r)
+		return
+	}
+	defer req.Body.Close()
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("token", token.Value)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		http.NotFound(w, r)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("Error: ", resp.Status)
+		http.NotFound(w, r)
+		return
+	}
+	log.Println("Message sent")
+	http.Redirect(w, r, "/chatBox?offerID="+offerID, http.StatusPermanentRedirect)
+}
+
 
 func main() {
 	http.HandleFunc("/", offerPagehandler)
@@ -622,6 +756,8 @@ func main() {
 	http.HandleFunc("/communitiesList", generateCommunityList)
 	http.HandleFunc("/userCommunitiesList", generateUserCommunityList)
 	http.HandleFunc("/viewOffer", generateOffer)
+	http.HandleFunc("/chatBox", renderMessageBox)
+	http.HandleFunc("/handelSendMessage", handelSendMessage)
 	fmt.Println("Server started at http://localhost:8080")
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {

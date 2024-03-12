@@ -219,6 +219,7 @@ templ offerPage(offers []Offer) {
 
 templ viewOfferPage(offer Offer) {
 	@basePage() {
+	<div style="display: flex; flex-direction: row; justify-content: center; align-items: center;">
 	<div id="offer" style="display: flex; justify-content: center;
 		margin-top: 10vh; align-items: center; flex-direction: column;
 		">
@@ -229,6 +230,7 @@ templ viewOfferPage(offer Offer) {
 		{offer.Description}</p>
 		<p>Posted To: {offer.CommunityName}</p>
 		<p>Posted At: {offer.CreatedAt}</p>
+		<p>Posted By: {strconv.Itoa(offer.UserID)}</p>
 
 		for _, photo := range offer.Photos {
 			<img src={"http://127.0.0.1:8000/images/" +strconv.Itoa(photo.ID)}
@@ -236,6 +238,13 @@ templ viewOfferPage(offer Offer) {
 			loading="lazy"></img>
 		}
 	</div>
+	<div hx-get="/chatBox" hx-swap="outerHTML" hx-trigger="load" hx-include="#offerID, #posterID">
+	</div>
+	<input type="hidden" id="offerID" name="offerID" value={strconv.Itoa(offer.ID)}></input>
+	<input type="hidden" id="posterID" name="posterID" value={strconv.Itoa(offer.UserID)}></input>
+	</div>
+
+	
 	}
 }
 
@@ -276,6 +285,65 @@ templ createCommunityPage() {
 		</form>
 		</div>
 	}
+}
+
+css chatContainer() {
+	background-color: #764abc;
+	border-radius: 0.4em;
+	padding: 0.5em;
+	margin: 0.5em;
+	display: flex;
+	flex-direction: column;
+	height: 70vh;
+}
+
+css sentMsg() {
+	color: #ffffff;
+	background-color: #50298c;
+	border-radius: 0.4em;
+	padding: 0.5em;
+	margin: 0.5em;
+	width: 50%;
+	align-self: flex-end;
+}
+
+css recivedMsg() {
+	color: #ffffff;
+	background-color: #50298c;
+	border-radius: 0.4em;
+	padding: 0.5em;
+	margin: 0.5em;
+	width: 50%;
+	align-self: flex-start;
+}
+
+css messageInput() {
+	border-radius: 0.4em;
+	padding: 0.5em;
+	margin: 0.5em;
+	width: 50%;
+}
+
+templ chatBox(messages []Message) {
+	<div class={chatContainer()} id="chatBox" hx-get="/chatBox" hx-include="#offerID, #posterID"
+	hx-swap="outerHTML" hx-trigger="every 5s">
+	for i, message := range messages {
+		if message.isMyMsg {
+			<p id={"msg" + strconv.Itoa(i)}
+			class={sentMsg()}>{message.Text}</p>
+		} else {
+			<p id={"msg" + strconv.Itoa(i)}
+			class={recivedMsg()}>{message.Text}</p>
+		}
+	}
+	<form hx-post="/handelSendMessage" method="post" hx-include="#offerID, #posterID" hx-swap="outerHTML" hx-trigger="submit" hx-target="#chatBox">
+		<textarea name="message" placeholder="Message" required
+			style="width: 30em; height: 10em;" class="messageInput"
+			></textarea>
+		<input type="submit" value="Send"></input>
+	</form>
+	</div>
+	
 }
 
 templ basePage() {

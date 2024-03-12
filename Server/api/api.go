@@ -3,11 +3,13 @@ package api
 import (
 	"fmt"
 	"log"
-	mrand "math/rand"
 	"path/filepath"
 	"strconv"
 	"time"
-
+	"image/png"
+	"image/jpeg"
+	"os"
+	"github.com/nfnt/resize"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -28,6 +30,8 @@ type User struct {
 	ProfilePhoto     *Photo      `gorm:"foreignKey:UserID"`
 	Communities      []Community `gorm:"many2many:user_communities;"`
 	OwnedCommunities []Community `gorm:"foreignKey:OwnerID"`
+	MessagesInbox    []Message   `gorm:"foreignKey:ReciverID"`
+	MessagesOutbox   []Message   `gorm:"foreignKey:SenderID"`
 }
 
 type Photo struct {
@@ -40,12 +44,14 @@ type Photo struct {
 
 type Offer struct {
 	gorm.Model
-	Title       string  `json:"title"`
-	Description string  `json:"description"`
-	Photos      []Photo `gorm:"foreignKey:OfferID"`
-	UserID      uint    `json:"user_id"`
-	CommunityID uint    `json:"community_id"`
-	CreatedAt   time.Time
+	Title       	 string    `json:"title"`
+	Description 	 string    `json:"description"`
+	Photos      	 []Photo   `gorm:"foreignKey:OfferID"`
+	UserID      	 uint      `json:"user_id"`
+	CommunityID      uint      `json:"community_id"`
+	Messages         []Message `gorm:"foreignKey:OfferID"`
+	CreatedAt        time.Time
+	MessagesInbox    []Message   `gorm:"foreignKey:OfferID"`
 }
 
 type Request struct {
@@ -55,6 +61,8 @@ type Request struct {
 	Photos      []Photo `gorm:"foreignKey:RequestID"`
 	UserID      uint
 	CommunityID uint
+	Messages    []Message `gorm:"foreignKey:RequestID"`
+	CreatedAt   time.Time
 }
 
 type Community struct {
@@ -68,6 +76,14 @@ type Community struct {
 	Requests []Request `gorm:"foreignKey:CommunityID"`
 }
 
+type Message struct {
+	gorm.Model 
+	Text       string
+	SenderID   uint 
+	ReciverID  uint
+	OfferID    *uint
+	RequestID  *uint 
+}
 type SignUpInput struct {
 	UserName string `json:"username" binding:"required"`
 	Email    string `json:"email" binding:"required"`
@@ -88,6 +104,7 @@ type OfferInput struct {
 	ImageID     string `json:"image_id" binding:"required"`
 }
 
+
 func SetupRoutes(db *gorm.DB, router *gin.Engine) {
 	router.POST("/image", CreateImage(db))
 	router.POST("/signup", SignUp(db))
@@ -101,6 +118,9 @@ func SetupRoutes(db *gorm.DB, router *gin.Engine) {
 	router.GET("/communities/:country", GetCommunityByCountry(db))
 	router.GET("/userCommunities", GetUserCommunities(db))
 	router.GET("/offer/:id", GetOfferById(db))
+
+	router.POST("/messages", SendMesssage(db))
+	router.GET("/messages", GetMessages(db))
 }
 
 
@@ -137,7 +157,7 @@ func ConnectDB() *gorm.DB {
 		log.Fatal("Error connecting to the database: ", err)
 	}
 	//DropAllTables(db)
-	err = db.AutoMigrate(&User{}, &Photo{}, &Offer{}, &Request{}, &Community{})
+	err = db.AutoMigrate(&User{}, &Photo{}, &Offer{}, &Request{}, &Community{}, &Message{})
 	if err != nil {
 		log.Fatal("Error Migrating the database: ", err)
 	}
@@ -149,7 +169,7 @@ func ConnectDB() *gorm.DB {
 func CreateImage(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var err error
-		err = c.Request.ParseMultipartForm(10 << 20)
+		err = c.Request.ParseMultipartForm(10^6 *5) // 5MB
 		if err != nil {
 			c.JSON(399, gin.H{"error": err.Error()})
 			return
@@ -181,9 +201,42 @@ func CreateImage(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 		image := form.File["image"][0]
-		randString := strconv.Itoa(mrand.Int())
-		filename := randString + image.Filename
-		err = c.SaveUploadedFile(image, filepath.Join("./images", filename))
+		src, err := image.Open()
+		if err != nil {
+			c.JSON(405, gin.H{"error": err.Error()})
+			return
+		}
+		defer src.Close()
+		fmt.Printf("image: %v\n", src)
+		img, err := jpeg.Decode(src)
+		if err != nil {
+			fmt.Printf("error decoding image: %e\n", err)
+			img, err = png.Decode(src)
+			if err != nil {
+				fmt.Printf("error decoding image: %e\n", err)
+				c.JSON(406, gin.H{"error": ""})
+				return
+			}
+		}
+		img = resize.Resize(512, 0, img, resize.Lanczos3)
+		if err != nil {
+			c.JSON(407, gin.H{"error": err.Error()})
+			return
+		}
+
+		timeString := time.Now().String()
+		filename := timeString + image.Filename
+		imgFile, err := os.Create(filepath.Join("./images", filename))
+		if err != nil {
+			c.JSON(408, gin.H{"error": err.Error()})
+			return
+		}
+		defer imgFile.Close()
+		err = jpeg.Encode(imgFile, img, nil)
+		if err != nil {
+			c.JSON(409, gin.H{"error": err.Error()})
+			return
+		}
 		if err != nil {
 			c.JSON(406, gin.H{"error": err.Error()})
 			return
@@ -732,6 +785,89 @@ func GetOfferById(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
+
+type MessageInput struct {
+	Text      string `json:"text" binding:"required"`
+	ReciverID string `json:"reciver_id" binding:"required"`
+	OfferID   string `json:"offer_id"`
+}
+
+func SendMesssage(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var message Message
+		var messageInput MessageInput
+		var offer Offer
+		tokenString := c.Request.Header.Get("token")
+		userID, err := validateJWT(tokenString) 
+		
+		if err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		err = c.BindJSON(&messageInput)
+		if err != nil {
+			fmt.Printf("error binding json: %v\n", err)
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		senderID, err := strconv.Atoi(userID)
+		if err != nil {
+			fmt.Printf("error parsing user id: %v\n", err)
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		reciverID, err := strconv.Atoi(messageInput.ReciverID)
+		if err != nil {
+			fmt.Printf("error parsing reciver id: %v\n", err)
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		offerID, err := strconv.Atoi(messageInput.OfferID)
+		if err != nil {
+			fmt.Printf("error parsing offer id: %v\n", err)
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		message = Message{Text: messageInput.Text, SenderID: uint(senderID), ReciverID: uint(reciverID)}
+		result := db.Create(&message)
+		if result.Error != nil {
+			fmt.Printf("error creating message: %v\n", result.Error)
+			c.JSON(400, gin.H{"error": result.Error.Error()})
+			return 
+		}
+		result = db.First(&offer, offerID)
+		if result.Error != nil {
+			c.JSON(200, message)
+			return 
+		}
+		err = db.Model(&offer).Association("Messages").Append(&message)
+		if err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return 
+		}
+		c.JSON(200, message)
+
+	
+	}
+}
+
+func GetMessages(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var messages []Message
+		tokenString := c.Request.Header.Get("token")
+		userID, err := validateJWT(tokenString)
+		if err != nil {
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		results := db.Find(&messages, "reciver_id = ?", userID).Or("sender_id = ?", userID)
+		if results.Error != nil {
+			c.JSON(400, gin.H{"error": results.Error.Error()})
+			return
+		}
+		c.JSON(200, messages)
+	}
+}
 func DropAllTables(db *gorm.DB) {
 	log.Println("Droping all tables")
 	err := db.Migrator().DropTable(&User{}, &Photo{}, &Offer{}, &Request{}, &Community{})
