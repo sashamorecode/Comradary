@@ -823,7 +823,7 @@ func handelSendMessage(w http.ResponseWriter, r *http.Request) {
 		"offer_id":   offerID,
 	}
 	encodedPayload := map2json(payload)
-	req, err := http.NewRequest("POST", "http://localhost:8000/messages", bytes.NewBuffer(encodedPayload))
+	req, err := http.NewRequest("POST", apiURL + "/messages", bytes.NewBuffer(encodedPayload))
 	if err != nil {
 		fmt.Println(err)
 		http.NotFound(w, r)
