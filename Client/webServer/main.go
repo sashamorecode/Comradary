@@ -13,6 +13,11 @@ import (
 	"strconv"
 )
 
+var (
+	apiURL = "http://localhost:8080"
+)
+
+
 type Photo struct {
 	ID int
 }
@@ -47,7 +52,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		"password": r.Form.Get("password"),
 	}
 	jstring := map2json(rVals)
-	req, err := http.NewRequest("POST", "http://localhost:8000/signin", bytes.NewBuffer(jstring))
+	req, err := http.NewRequest("POST", apiURL + "/signin", bytes.NewBuffer(jstring))
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
@@ -150,7 +155,7 @@ func createOffer(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		writer.Close()
-		req, err = http.NewRequest("POST", "http://localhost:8000/image", &b)
+		req, err = http.NewRequest("POST", apiURL + "/image", &b)
 		if err != nil {
 			fmt.Println(err)
 			http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
@@ -864,8 +869,9 @@ func main() {
 	http.HandleFunc("/chatBox", renderMessageBox)
 	http.HandleFunc("/handelSendMessage", handelSendMessage)
 	http.HandleFunc("/offerInbox", renderInboxOptions)
-	fmt.Println("Server started at http://localhost:8080")
-	err := http.ListenAndServe(":8080", nil)
+	ip := "127.0.0.1"
+	fmt.Printf("Server running on: %v:8080\n", ip)
+	err := http.ListenAndServe(ip + ":8080", nil)
 	if err != nil {
 		fmt.Println(err)
 	}
