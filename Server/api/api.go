@@ -121,6 +121,8 @@ func SetupRoutes(db *gorm.DB, router *gin.Engine) {
 
 	router.POST("/messages", SendMesssage(db))
 	router.GET("/messages", GetMessages(db))
+	router.GET("/username/:id", GetUserById(db))
+	router.GET("/offerResp/:id", GetOfferResp(db))
 }
 
 
@@ -860,14 +862,99 @@ func GetMessages(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
 		}
-		results := db.Find(&messages, "reciver_id = ?", userID).Or("sender_id = ?", userID)
-		if results.Error != nil {
-			c.JSON(400, gin.H{"error": results.Error.Error()})
+		otherUserID := c.Request.Header.Get("otherUserID")
+		if otherUserID == "" {
+			fmt.Printf("otherUserID: %v\n", otherUserID)
+			c.JSON(400, gin.H{"error": "otherUserID is empty"})
+			return
+		}
+		
+		result := db.Find(&messages, "sender_id = ? AND reciver_id = ?", userID, otherUserID)
+		if result.Error != nil {
+			c.JSON(400, gin.H{"error": result.Error.Error()})
+			return 
+		}
+		fmt.Printf("user id: %v, other user id: %v\n", userID, otherUserID)
+		result = db.Where("reciver_id = ? AND sender_id = ?", userID, otherUserID).
+			    Or("reciver_id = ? AND sender_id = ?", otherUserID, userID).
+			    Find(&messages)
+		if result.Error != nil {
+			c.JSON(400, gin.H{"error": result.Error.Error()})
 			return
 		}
 		c.JSON(200, messages)
 	}
 }
+
+func ResolveUserName(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var user User
+		userID := c.Param("id")
+		result := db.First(&user, userID)
+		if result.Error != nil {
+			c.JSON(400, gin.H{"error": result.Error.Error()})
+			return
+		}
+		c.JSON(200, user.UserName)
+	}
+}
+
+func GetOfferResp(db *gorm.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var offer Offer
+		offerID := c.Param("id")
+		tokenString := c.Request.Header.Get("token")
+		userID, err := validateJWT(tokenString)
+		if err != nil {
+			fmt.Printf("error validating token: %v\n", err)
+			c.JSON(400, gin.H{"error": err.Error()})
+			return
+		}
+		result := db.First(&offer, offerID)
+		if result.Error != nil {
+			fmt.Printf("error finding offer: %v\n", result.Error)
+			c.JSON(400, gin.H{"error": result.Error.Error()})
+			return
+		}
+		if fmt.Sprint(offer.UserID) != userID {
+			fmt.Printf("offer user id: %v, token user id: %v\n", offer.UserID, userID)
+			c.JSON(400, gin.H{"error": "user does not own offer"})
+			return
+		}
+		//get users who have messaged the offer 
+		var messages []Message 
+		result = db.Find(&messages, "offer_id = ?", offerID)
+		if result.Error != nil {
+			fmt.Printf("error finding messages: %v\n", result.Error)
+			c.JSON(400, gin.H{"error": result.Error.Error()})
+			return
+		}
+		var users []User 
+		for _, message := range messages {
+			var user User
+			result = db.First(&user, message.SenderID)
+			if result.Error != nil {
+				fmt.Printf("error finding user: %v\n", result.Error)
+				c.JSON(400, gin.H{"error": result.Error.Error()})
+				return 
+			}
+			if !user.isIn(users) {
+				users = append(users, user)
+			}
+		}
+		c.JSON(200, users)
+	}
+}
+
+func (user User) isIn(users []User) bool {
+	for _, u := range users {
+		if u.ID == user.ID {
+			return true
+		}
+	}
+	return false
+}
+
 func DropAllTables(db *gorm.DB) {
 	log.Println("Droping all tables")
 	err := db.Migrator().DropTable(&User{}, &Photo{}, &Offer{}, &Request{}, &Community{})

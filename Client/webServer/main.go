@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"time"
 	"github.com/a-h/templ"
+	"strconv"
 )
 
 type Photo struct {
@@ -614,17 +615,49 @@ type Message struct {
 type MessageFromServer struct {
 	Text       string
 	SenderID   int 
-	ReceiverID int 
+	ReciverID  int 
 	OfferID    int 
 }
+type User struct {
+	ID       int 
+	Username string 
+}
 
-func renderMessageBox(w http.ResponseWriter, r *http.Request) {
-	err := r.ParseForm()
+func getUser(w http.ResponseWriter, r *http.Request, id string, client *http.Client) (User, error) {
+	req, err := http.NewRequest("GET", "http://localhost:8000/user/"+id, bytes.NewBuffer([]byte("")))
 	if err != nil {
+		return User{}, err
+	}
+	defer req.Body.Close()
+	resp, err := client.Do(req)
+	if err != nil {
+		return User{}, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return User{}, fmt.Errorf("Error: %v", resp.Status)
+	}
+	var user User
+	err = json.NewDecoder(resp.Body).Decode(&user)
+	if err != nil {
+		return User{}, err 
+	}
+	return user, nil
+}
+
+func renderInboxOptions(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	if err != nil { 
 		fmt.Println(err)
 		http.NotFound(w, r)
 	}
 	offerID := r.Form.Get("offerID")
+	posterID := r.Form.Get("posterID")
+	posterIDInt, err := strconv.Atoi(posterID)
+	if err != nil {
+		fmt.Println(err)
+		http.NotFound(w, r)
+	}
 	token, err := r.Cookie("token")
 	if err != nil {
 		fmt.Println(err)
@@ -637,9 +670,81 @@ func renderMessageBox(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 		return
 	}
+	if posterID != tokenID.Value {
+		err = selectChatBox([]User{{ID: posterIDInt, Username: "Poster"}}).Render(r.Context(), w)
+		if err != nil {
+			fmt.Println(err)
+			http.NotFound(w, r)
+		}
+		return
+	}
+	client := &http.Client{}
+	req, err := http.NewRequest("GET", "http://localhost:8000/offerResp/"+offerID, bytes.NewBuffer([]byte("")))
 	if err != nil {
 		fmt.Println(err)
-		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect) 
+		http.NotFound(w, r)
+		return
+	}
+	defer req.Body.Close()
+	req.Header.Set("token", token.Value)
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		http.NotFound(w, r)
+		return
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		fmt.Println("Error: ", resp.Status)
+		http.NotFound(w, r)
+		return
+	}
+	var users []User
+	err = json.NewDecoder(resp.Body).Decode(&users)
+	if err != nil {
+		fmt.Println(err)
+		http.NotFound(w, r)
+		return
+	}
+	for i, u := range users {
+		if strconv.Itoa(u.ID) == tokenID.Value {
+			users = append(users[:i], users[i+1:]...)
+			break
+		}
+	}
+	if len(users) == 0 {
+		err = selectChatBox([]User{{ID: posterIDInt, Username: "No Messages Yet"}}).Render(r.Context(), w)
+		if err != nil {
+			fmt.Println(err)
+			http.NotFound(w, r)
+			return
+		}
+	}else {
+	err = selectChatBox(users).Render(r.Context(), w)
+	}
+	if err != nil {
+		fmt.Println(err)
+		http.NotFound(w, r)
+	}
+}
+
+func renderMessageBox(w http.ResponseWriter, r *http.Request) {
+	err := r.ParseForm()
+	client := &http.Client{}
+	if err != nil {
+		fmt.Println(err)
+		http.NotFound(w, r)
+	}
+	offerID := r.Form.Get("offerID")
+	posterID := r.Form.Get("posterID")
+	otherUserID := r.Form.Get("otherUserID")
+
+	fmt.Printf("OfferID: %v, PosterID: %v, OtherUserID: %v\n", offerID, posterID, otherUserID)
+
+	token, err := r.Cookie("token")
+	if err != nil {
+		fmt.Println(err)
+		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 		return
 	}
 	req, err := http.NewRequest("GET", "http://localhost:8000/messages", bytes.NewBuffer([]byte("")))
@@ -650,8 +755,7 @@ func renderMessageBox(w http.ResponseWriter, r *http.Request) {
 	}
 	defer req.Body.Close()
 	req.Header.Set("token", token.Value)
-
-	client := &http.Client{}
+	req.Header.Set("otherUserID", otherUserID)
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
@@ -673,12 +777,14 @@ func renderMessageBox(w http.ResponseWriter, r *http.Request) {
 	}
 	var relevantMessages []Message
 	for _, m := range messages {
-		if fmt.Sprint(m.OfferID) == offerID {
+		if fmt.Sprint(m.OfferID) == offerID && 
+		(fmt.Sprint(m.SenderID) == otherUserID || fmt.Sprint(m.ReciverID) == otherUserID) {
 			msg := Message{Text: m.Text, OfferID: m.OfferID}
-			if fmt.Sprint(m.SenderID) == tokenID.Value {
-				msg.isMyMsg = true 
+			msgSenderID := fmt.Sprint(m.SenderID)
+			if msgSenderID == otherUserID {
+				msg.isMyMsg = false
 			} else {
-				msg.isMyMsg = false 
+				msg.isMyMsg = true 
 			}
 			relevantMessages = append(relevantMessages, msg)
 		}
@@ -688,9 +794,9 @@ func renderMessageBox(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		fmt.Println(err)
 		http.NotFound(w, r)
+	
 	}
 }
-
 func handelSendMessage(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -708,10 +814,9 @@ func handelSendMessage(w http.ResponseWriter, r *http.Request) {
 	
 	payload := map[string]string{
 		"text":       r.Form.Get("message"),
-		"reciver_id": r.Form.Get("posterID"),
+		"reciver_id": r.Form.Get("otherUserID"),
 		"offer_id":   offerID,
 	}
-	fmt.Printf("Payload: %v\n", payload)
 	encodedPayload := map2json(payload)
 	req, err := http.NewRequest("POST", "http://localhost:8000/messages", bytes.NewBuffer(encodedPayload))
 	if err != nil {
@@ -758,6 +863,7 @@ func main() {
 	http.HandleFunc("/viewOffer", generateOffer)
 	http.HandleFunc("/chatBox", renderMessageBox)
 	http.HandleFunc("/handelSendMessage", handelSendMessage)
+	http.HandleFunc("/offerInbox", renderInboxOptions)
 	fmt.Println("Server started at http://localhost:8080")
 	err := http.ListenAndServe(":8080", nil)
 	if err != nil {

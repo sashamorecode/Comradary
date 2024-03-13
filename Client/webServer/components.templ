@@ -217,37 +217,6 @@ templ offerPage(offers []Offer) {
 	}
 }
 
-templ viewOfferPage(offer Offer) {
-	@basePage() {
-	<div style="display: flex; flex-direction: row; justify-content: center; align-items: center;">
-	<div id="offer" style="display: flex; justify-content: center;
-		margin-top: 10vh; align-items: center; flex-direction: column;
-		">
-		
-		<h1 style="text-align: center; max-width: 50vw;">
-		{offer.Title} </h1>
-		<p style="text-align: center; max-width: 50vw; ">
-		{offer.Description}</p>
-		<p>Posted To: {offer.CommunityName}</p>
-		<p>Posted At: {offer.CreatedAt}</p>
-		<p>Posted By: {strconv.Itoa(offer.UserID)}</p>
-
-		for _, photo := range offer.Photos {
-			<img src={"http://127.0.0.1:8000/images/" +strconv.Itoa(photo.ID)}
-			style="border-radius: 0.4em; margin-top: 1em; max-width: 50vw; max-height: 50vh;"
-			loading="lazy"></img>
-		}
-	</div>
-	<div hx-get="/chatBox" hx-swap="outerHTML" hx-trigger="load" hx-include="#offerID, #posterID">
-	</div>
-	<input type="hidden" id="offerID" name="offerID" value={strconv.Itoa(offer.ID)}></input>
-	<input type="hidden" id="posterID" name="posterID" value={strconv.Itoa(offer.UserID)}></input>
-	</div>
-
-	
-	}
-}
-
 
 templ communityOptions(communities []Community) {
 	<select name="community_id" id="optList">
@@ -324,26 +293,85 @@ css messageInput() {
 	width: 50%;
 }
 
-templ chatBox(messages []Message) {
-	<div class={chatContainer()} id="chatBox" hx-get="/chatBox" hx-include="#offerID, #posterID"
-	hx-swap="outerHTML" hx-trigger="every 5s">
-	for i, message := range messages {
-		if message.isMyMsg {
-			<p id={"msg" + strconv.Itoa(i)}
-			class={sentMsg()}>{message.Text}</p>
-		} else {
-			<p id={"msg" + strconv.Itoa(i)}
-			class={recivedMsg()}>{message.Text}</p>
+
+templ viewOfferPage(offer Offer) {
+	@basePage() {
+	<div style="display: flex; flex-direction: row; justify-content: center; align-items: center;">
+	<div id="offer" style="display: flex; justify-content: center;
+		margin-top: 10vh; align-items: center; flex-direction: column;
+		">
+		<h1 style="text-align: center; max-width: 50vw;">
+		{offer.Title} </h1>
+		<p style="text-align: center; max-width: 50vw; ">
+		{offer.Description}</p>
+		<p>Posted To: {offer.CommunityName}</p>
+		<p>Posted At: {offer.CreatedAt}</p>
+		<p>Posted By: {strconv.Itoa(offer.UserID)}</p>
+		for _, photo := range offer.Photos {
+			<img src={"http://127.0.0.1:8000/images/" +strconv.Itoa(photo.ID)}
+			style="border-radius: 0.4em; margin-top: 1em; max-width: 50vw; max-height: 50vh;"
+			loading="lazy"></img>
 		}
-	}
-	<form hx-post="/handelSendMessage" method="post" hx-include="#offerID, #posterID" hx-swap="outerHTML" hx-trigger="submit" hx-target="#chatBox">
+	</div>
+
+	<div class={chatContainer()}>
+	<div id="selectChatBox" hx-get="/offerInbox" hx-swap="outerHTML" hx-trigger="load"
+	     hx-include="#offerID, #posterID"></div>
+	<form hx-post="/handelSendMessage" hx-include="#offerID, #posterID, #otherUserID"
+	      hx-swap="outerHTML" hx-trigger="submit" hx-target="#chatBox" id="chatForm">
+
 		<textarea name="message" placeholder="Message" required
-			style="width: 30em; height: 10em;" class="messageInput"
-			></textarea>
+			style="width: 30em; height: 10em;" class="messageInput">
+		</textarea>
 		<input type="submit" value="Send"></input>
 	</form>
 	</div>
 	
+	<input type="hidden" id="offerID" name="offerID" value={strconv.Itoa(offer.ID)}></input>
+	<input type="hidden" id="posterID" name="posterID" value={strconv.Itoa(offer.UserID)}></input>
+	</div>	
+	}
+}
+
+css messagesContainer() {
+	display: flex;
+	flex-direction: column;
+	justify-content: start;
+	height: 70vh;
+	overflow-y: scroll;
+	overflow-anchor: none;
+}
+
+templ chatBox(messages []Message) {
+	<div id="chatBox" hx-get="/chatBox" hx-include="#offerID, #posterID, #otherUserID"
+	hx-swap="outerHTML" hx-trigger="every 10s, change from:#otherUserID" 
+	class={messagesContainer()}>
+	for i, message := range messages {
+		if message.isMyMsg {
+			<div style="display: flex; flex-direction: row; justify-content: flex-end;">
+			<p id={"msg" + strconv.Itoa(i)}
+			class={sentMsg()}>{message.Text}</p>
+			</div>
+		} else {
+			<div style="display: flex; flex-direction: row; justify-content: flex-start;">
+			<p id={"msg" + strconv.Itoa(i)}
+			class={recivedMsg()}>{message.Text}</p>
+			</div>
+		}
+	}
+	<div style="overflow-anchor: auto; height: 1em"></div>
+	</div>
+	
+}
+
+templ selectChatBox(users []User) {
+	<select name="otherUserID" id="otherUserID">
+		for _, user := range users {
+			<option value={strconv.Itoa(user.ID)}>{user.Username}</option>
+		}
+	</select>
+	<div hx-get="/chatBox" hx-swap="innerHTML" hx-trigger="load"
+	     hx-include="#offerID, #posterID, #otherUserID" id="chatBoxDiv"></div>
 }
 
 templ basePage() {
