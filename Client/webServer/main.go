@@ -212,7 +212,7 @@ func createOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req, err = http.NewRequest("POST", "http://localhost:8000/offers", bytes.NewBuffer(encodedPayload))
+	req, err = http.NewRequest("POST", apiURL + "/offers", bytes.NewBuffer(encodedPayload))
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
@@ -260,7 +260,7 @@ func handleSignup(w http.ResponseWriter, r *http.Request) {
 		"email":    r.Form.Get("email"),
 	}
 	jstring := map2json(rVals)
-	req, err := http.NewRequest("POST", "http://localhost:8000/signup", bytes.NewBuffer(jstring))
+	req, err := http.NewRequest("POST", apiURL + "/signup", bytes.NewBuffer(jstring))
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/signup", http.StatusTemporaryRedirect)
@@ -300,7 +300,7 @@ func getMyOffers(w http.ResponseWriter, r *http.Request) []Offer {
 		return nil
 	}
 
-	req, err := http.NewRequest("GET", "http://localhost:8000/myOffers/", bytes.NewBuffer([]byte("")))
+	req, err := http.NewRequest("GET", apiURL + "/myOffers/", bytes.NewBuffer([]byte("")))
 	if err != nil {
 		fmt.Println(err)
 		return nil
@@ -386,7 +386,7 @@ func handleJoinCommunity(w http.ResponseWriter, r *http.Request) {
 		"user_token":   token.Value,
 	}
 	encodedPayload := map2json(payload)
-	req, err := http.NewRequest("POST", "http://localhost:8000/joinCommunity", bytes.NewBuffer(encodedPayload))
+	req, err := http.NewRequest("POST", apiURL + "/joinCommunity", bytes.NewBuffer(encodedPayload))
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/joinCommunity", http.StatusTemporaryRedirect)
@@ -433,7 +433,7 @@ func handleCreateCommunity(w http.ResponseWriter, r *http.Request) {
 		"city":    r.Form.Get("city"),
 	}
 	encodedPayload := map2json(payload)
-	req, err := http.NewRequest("POST", "http://localhost:8000/createCommunity", bytes.NewBuffer(encodedPayload))
+	req, err := http.NewRequest("POST", apiURL + "/createCommunity", bytes.NewBuffer(encodedPayload))
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/createCommunity", http.StatusTemporaryRedirect)
@@ -466,7 +466,7 @@ func getUserCommunities(w http.ResponseWriter, r *http.Request) []Community {
 		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 		return nil
 	}
-	req, err := http.NewRequest("GET", "http://localhost:8000/userCommunities", bytes.NewBuffer([]byte("")))
+	req, err := http.NewRequest("GET", apiURL + "/userCommunities", bytes.NewBuffer([]byte("")))
 	if err != nil {
 		fmt.Println(err)
 		return nil
@@ -507,7 +507,7 @@ func getCommunities(w http.ResponseWriter, r *http.Request) ([]Community, string
 	}
 	country := r.Form.Get("country")
 	fmt.Println("Country: ", country)
-	req, err := http.NewRequest("GET", "http://localhost:8000/communities/" + country, bytes.NewBuffer([]byte("")))
+	req, err := http.NewRequest("GET", apiURL + "/communities/" + country, bytes.NewBuffer([]byte("")))
 	if err != nil {
 		fmt.Println(err)
 		return nil, ""
@@ -572,7 +572,7 @@ func generateOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := r.URL.Query().Get("offerID")
-	req, err := http.NewRequest("GET", "http://localhost:8000/offer/"+id, bytes.NewBuffer([]byte("")))
+	req, err := http.NewRequest("GET", apiURL + "/offer/"+id, bytes.NewBuffer([]byte("")))
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
@@ -629,7 +629,7 @@ type User struct {
 }
 
 func getUser(w http.ResponseWriter, r *http.Request, id string, client *http.Client) (User, error) {
-	req, err := http.NewRequest("GET", "http://localhost:8000/user/"+id, bytes.NewBuffer([]byte("")))
+	req, err := http.NewRequest("GET", apiURL + "/user/"+id, bytes.NewBuffer([]byte("")))
 	if err != nil {
 		return User{}, err
 	}
@@ -684,7 +684,7 @@ func renderInboxOptions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", "http://localhost:8000/offerResp/"+offerID, bytes.NewBuffer([]byte("")))
+	req, err := http.NewRequest("GET", apiURL + "/offerResp/"+offerID, bytes.NewBuffer([]byte("")))
 	if err != nil {
 		fmt.Println(err)
 		http.NotFound(w, r)
@@ -752,7 +752,7 @@ func renderMessageBox(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 		return
 	}
-	req, err := http.NewRequest("GET", "http://localhost:8000/messages", bytes.NewBuffer([]byte("")))
+	req, err := http.NewRequest("GET", apiURL + "/messages", bytes.NewBuffer([]byte("")))
 	if err != nil {
 		fmt.Println(err)
 		http.NotFound(w, r)
