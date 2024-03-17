@@ -19,7 +19,10 @@ import (
 )
 
 // creaet random key
-var jwtKey = []byte("1asf12vsr2agrasg892yh780gahe780g0sbh8")
+var (
+	jwtKey    = []byte("1asf12vsr2agrasg892yh780gahe780g0sbh8")
+	sqlServer = "root:password@tcp(127.0.0.1:3306)"
+)
 
 type User struct {
 	gorm.Model
@@ -152,7 +155,7 @@ func InsertTestData(db *gorm.DB) {
 	}
 }
 func ConnectDB() *gorm.DB {
-	dsn := "root:password@tcp(127.0.0.1:3306)/mysql?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := sqlServer + "/mysql?charset=utf8mb4&parseTime=True&loc=Local"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Error connecting to the database: ", err)
