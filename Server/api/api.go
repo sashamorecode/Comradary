@@ -2,16 +2,17 @@ package api
 
 import (
 	"fmt"
+	"image/jpeg"
+	"image/png"
 	"log"
+	"os"
 	"path/filepath"
 	"strconv"
 	"time"
-	"image/png"
-	"image/jpeg"
-	"os"
-	"github.com/nfnt/resize"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/nfnt/resize"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -44,14 +45,14 @@ type Photo struct {
 
 type Offer struct {
 	gorm.Model
-	Title       	 string    `json:"title"`
-	Description 	 string    `json:"description"`
-	Photos      	 []Photo   `gorm:"foreignKey:OfferID"`
-	UserID      	 uint      `json:"user_id"`
-	CommunityID      uint      `json:"community_id"`
-	Messages         []Message `gorm:"foreignKey:OfferID"`
-	CreatedAt        time.Time
-	MessagesInbox    []Message   `gorm:"foreignKey:OfferID"`
+	Title         string    `json:"title"`
+	Description   string    `json:"description"`
+	Photos        []Photo   `gorm:"foreignKey:OfferID"`
+	UserID        uint      `json:"user_id"`
+	CommunityID   uint      `json:"community_id"`
+	Messages      []Message `gorm:"foreignKey:OfferID"`
+	CreatedAt     time.Time
+	MessagesInbox []Message `gorm:"foreignKey:OfferID"`
 }
 
 type Request struct {
@@ -67,8 +68,8 @@ type Request struct {
 
 type Community struct {
 	gorm.Model
-	Name     string    `gorm:"unique"`
-	Country  string  
+	Name     string `gorm:"unique"`
+	Country  string
 	City     string
 	OwnerID  *uint
 	Users    []User    `gorm:"many2many:user_communities;"`
@@ -77,12 +78,12 @@ type Community struct {
 }
 
 type Message struct {
-	gorm.Model 
-	Text       string
-	SenderID   uint 
-	ReciverID  uint
-	OfferID    *uint
-	RequestID  *uint 
+	gorm.Model
+	Text      string
+	SenderID  uint
+	ReciverID uint
+	OfferID   *uint
+	RequestID *uint
 }
 type SignUpInput struct {
 	UserName string `json:"username" binding:"required"`
@@ -104,7 +105,6 @@ type OfferInput struct {
 	ImageID     string `json:"image_id" binding:"required"`
 }
 
-
 func SetupRoutes(db *gorm.DB, router *gin.Engine) {
 	router.POST("/image", CreateImage(db))
 	router.POST("/signup", SignUp(db))
@@ -124,7 +124,6 @@ func SetupRoutes(db *gorm.DB, router *gin.Engine) {
 	router.GET("/username/:id", GetUserById(db))
 	router.GET("/offerResp/:id", GetOfferResp(db))
 }
-
 
 func InsertTestData(db *gorm.DB) {
 	// Create a Community
@@ -171,7 +170,7 @@ func ConnectDB() *gorm.DB {
 func CreateImage(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var err error
-		err = c.Request.ParseMultipartForm(10^6 *5) // 5MB
+		err = c.Request.ParseMultipartForm(10 ^ 6*5) // 5MB
 		if err != nil {
 			c.JSON(399, gin.H{"error": err.Error()})
 			return
@@ -237,10 +236,6 @@ func CreateImage(db *gorm.DB) gin.HandlerFunc {
 		err = jpeg.Encode(imgFile, img, nil)
 		if err != nil {
 			c.JSON(409, gin.H{"error": err.Error()})
-			return
-		}
-		if err != nil {
-			c.JSON(406, gin.H{"error": err.Error()})
 			return
 		}
 		photo := Photo{Path: filename, UserID: uint(userID)}
@@ -402,9 +397,9 @@ func GetUserById(db *gorm.DB) gin.HandlerFunc {
 }
 
 type joinCommunityInput struct {
-	UserID        string `json:"user_id" binding:"required"`
-	CommunityID   string `json:"community_id" binding:"required"`
-	UserToken     string `json:"user_token" binding:"required"`
+	UserID      string `json:"user_id" binding:"required"`
+	CommunityID string `json:"community_id" binding:"required"`
+	UserToken   string `json:"user_token" binding:"required"`
 }
 
 func JoinCommunity(db *gorm.DB) gin.HandlerFunc {
@@ -432,7 +427,7 @@ func JoinCommunity(db *gorm.DB) gin.HandlerFunc {
 		userID := input.UserID
 		communityID := input.CommunityID
 		if userID == "" || communityID == "" {
-			fmt.Printf("user_id: %v, community_name:%v", userID, communityID )
+			fmt.Printf("user_id: %v, community_name:%v", userID, communityID)
 			c.JSON(400, gin.H{"error": "user_id or community_id is empty"})
 			return
 		}
@@ -503,12 +498,9 @@ func createCommunity(db *gorm.DB) gin.HandlerFunc {
 	}
 }
 
-
-
-
 func GetCommunityByCountry(db *gorm.DB) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var communitys []Community 
+		var communitys []Community
 		country := c.Param("country")
 		fmt.Printf("country: %v\n", country)
 		if country == "" {
@@ -518,16 +510,16 @@ func GetCommunityByCountry(db *gorm.DB) gin.HandlerFunc {
 				return
 			}
 			c.JSON(200, communitys)
-			return 
+			return
 		}
 		if country == "ALL" {
 			result := db.Find(&communitys)
 			if result.Error != nil {
 				c.JSON(400, gin.H{"error": result.Error.Error()})
-				return 
+				return
 			}
 			c.JSON(200, communitys)
-			return 
+			return
 		}
 		result := db.Find(&communitys, "country = ?", country)
 		if result.Error != nil {
@@ -561,8 +553,6 @@ func GetUserCommunities(db *gorm.DB) gin.HandlerFunc {
 		c.JSON(200, uCom)
 	}
 }
-
-
 
 func userBelongsToCommunity(db *gorm.DB, userID string, communityID string) (bool, error) {
 	var user User
@@ -725,7 +715,7 @@ func GetOffersByUserId(db *gorm.DB) gin.HandlerFunc {
 			err = db.Model(&userCommunities[i]).Association("Offers").Find(&userCommunities[i].Offers)
 			if err != nil {
 				c.JSON(400, gin.H{"error": err})
-				return 
+				return
 			}
 			for j, offer := range userCommunities[i].Offers {
 				err = db.Model(&offer).Association("Photos").Find(&userCommunities[i].Offers[j].Photos)
@@ -771,12 +761,12 @@ func GetOfferById(db *gorm.DB) gin.HandlerFunc {
 		}
 		err = db.Model(&user).Association("Communities").Find(&user.Communities)
 		if err != nil {
-			c.JSON(400, gin.H{"error": err })
-			return 
+			c.JSON(400, gin.H{"error": err})
+			return
 		}
 		if !isIn(user, offer) {
 			c.JSON(400, gin.H{"error": "user does not belong to community"})
-			return 
+			return
 		}
 		err = db.Model(&offer).Association("Photos").Find(&offer.Photos)
 		if err != nil {
@@ -786,7 +776,6 @@ func GetOfferById(db *gorm.DB) gin.HandlerFunc {
 		c.JSON(200, offer)
 	}
 }
-
 
 type MessageInput struct {
 	Text      string `json:"text" binding:"required"`
@@ -800,8 +789,8 @@ func SendMesssage(db *gorm.DB) gin.HandlerFunc {
 		var messageInput MessageInput
 		var offer Offer
 		tokenString := c.Request.Header.Get("token")
-		userID, err := validateJWT(tokenString) 
-		
+		userID, err := validateJWT(tokenString)
+
 		if err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
 			return
@@ -835,21 +824,20 @@ func SendMesssage(db *gorm.DB) gin.HandlerFunc {
 		if result.Error != nil {
 			fmt.Printf("error creating message: %v\n", result.Error)
 			c.JSON(400, gin.H{"error": result.Error.Error()})
-			return 
+			return
 		}
 		result = db.First(&offer, offerID)
 		if result.Error != nil {
 			c.JSON(200, message)
-			return 
+			return
 		}
 		err = db.Model(&offer).Association("Messages").Append(&message)
 		if err != nil {
 			c.JSON(400, gin.H{"error": err.Error()})
-			return 
+			return
 		}
 		c.JSON(200, message)
 
-	
 	}
 }
 
@@ -868,16 +856,16 @@ func GetMessages(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(400, gin.H{"error": "otherUserID is empty"})
 			return
 		}
-		
+
 		result := db.Find(&messages, "sender_id = ? AND reciver_id = ?", userID, otherUserID)
 		if result.Error != nil {
 			c.JSON(400, gin.H{"error": result.Error.Error()})
-			return 
+			return
 		}
 		fmt.Printf("user id: %v, other user id: %v\n", userID, otherUserID)
 		result = db.Where("reciver_id = ? AND sender_id = ?", userID, otherUserID).
-			    Or("reciver_id = ? AND sender_id = ?", otherUserID, userID).
-			    Find(&messages)
+			Or("reciver_id = ? AND sender_id = ?", otherUserID, userID).
+			Find(&messages)
 		if result.Error != nil {
 			c.JSON(400, gin.H{"error": result.Error.Error()})
 			return
@@ -921,22 +909,22 @@ func GetOfferResp(db *gorm.DB) gin.HandlerFunc {
 			c.JSON(400, gin.H{"error": "user does not own offer"})
 			return
 		}
-		//get users who have messaged the offer 
-		var messages []Message 
+		//get users who have messaged the offer
+		var messages []Message
 		result = db.Find(&messages, "offer_id = ?", offerID)
 		if result.Error != nil {
 			fmt.Printf("error finding messages: %v\n", result.Error)
 			c.JSON(400, gin.H{"error": result.Error.Error()})
 			return
 		}
-		var users []User 
+		var users []User
 		for _, message := range messages {
 			var user User
 			result = db.First(&user, message.SenderID)
 			if result.Error != nil {
 				fmt.Printf("error finding user: %v\n", result.Error)
 				c.JSON(400, gin.H{"error": result.Error.Error()})
-				return 
+				return
 			}
 			if !user.isIn(users) {
 				users = append(users, user)
@@ -962,4 +950,3 @@ func DropAllTables(db *gorm.DB) {
 		log.Fatal("Error Dropping the tables: ", err)
 	}
 }
-

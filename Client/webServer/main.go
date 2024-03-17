@@ -8,15 +8,15 @@ import (
 	"log"
 	"mime/multipart"
 	"net/http"
-	"time"
-	"github.com/a-h/templ"
 	"strconv"
+	"time"
+
+	"github.com/a-h/templ"
 )
 
 var (
 	apiURL = "http://127.0.0.1:8000"
 )
-
 
 type Photo struct {
 	ID int
@@ -26,11 +26,11 @@ type Offer struct {
 	ID            int
 	Title         string
 	Description   string
-	User          string 
+	User          string
 	Photos        []Photo
 	CommunityName string
-	CreatedAt    string
-	UserID       int `json:"user_id"`
+	CreatedAt     string
+	UserID        int `json:"user_id"`
 }
 
 type Community struct {
@@ -52,7 +52,7 @@ func handleLogin(w http.ResponseWriter, r *http.Request) {
 		"password": r.Form.Get("password"),
 	}
 	jstring := map2json(rVals)
-	req, err := http.NewRequest("POST", apiURL + "/signin", bytes.NewBuffer(jstring))
+	req, err := http.NewRequest("POST", apiURL+"/signin", bytes.NewBuffer(jstring))
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
@@ -130,11 +130,7 @@ func createOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Printf("Token: %v, ID: %v", token.Value, id)
-	if err != nil {
-		fmt.Println(err)
-		http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
-		return
-	}
+
 	//Upload image to server
 	var b bytes.Buffer
 	writer := multipart.NewWriter(&b)
@@ -155,7 +151,7 @@ func createOffer(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		writer.Close()
-		req, err = http.NewRequest("POST", apiURL + "/image", &b)
+		req, err = http.NewRequest("POST", apiURL+"/image", &b)
 		if err != nil {
 			fmt.Println(err)
 			http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
@@ -206,13 +202,8 @@ func createOffer(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Printf("Payload: %v\n", payload)
 	encodedPayload := map2json(payload)
-	if err != nil {
-		fmt.Println("no image?: \n", err)
-		http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
-		return
-	}
 
-	req, err = http.NewRequest("POST", apiURL + "/offers", bytes.NewBuffer(encodedPayload))
+	req, err = http.NewRequest("POST", apiURL+"/offers", bytes.NewBuffer(encodedPayload))
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/createOffer", http.StatusTemporaryRedirect)
@@ -238,7 +229,7 @@ func createOffer(w http.ResponseWriter, r *http.Request) {
 }
 
 func map2json(m map[string]string) []byte {
-	json, err := json.Marshal(m) 
+	json, err := json.Marshal(m)
 	if err != nil {
 		fmt.Println(err)
 		return []byte("{}")
@@ -260,7 +251,7 @@ func handleSignup(w http.ResponseWriter, r *http.Request) {
 		"email":    r.Form.Get("email"),
 	}
 	jstring := map2json(rVals)
-	req, err := http.NewRequest("POST", apiURL + "/signup", bytes.NewBuffer(jstring))
+	req, err := http.NewRequest("POST", apiURL+"/signup", bytes.NewBuffer(jstring))
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/signup", http.StatusTemporaryRedirect)
@@ -286,12 +277,11 @@ func handleSignup(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/login", http.StatusPermanentRedirect)
 }
 
-
-
 type communityOffer struct {
-	Name        string
-	Offers      []Offer
+	Name   string
+	Offers []Offer
 }
+
 func getMyOffers(w http.ResponseWriter, r *http.Request) []Offer {
 	token, err := r.Cookie("token")
 	if err != nil {
@@ -300,7 +290,7 @@ func getMyOffers(w http.ResponseWriter, r *http.Request) []Offer {
 		return nil
 	}
 
-	req, err := http.NewRequest("GET", apiURL + "/myOffers/", bytes.NewBuffer([]byte("")))
+	req, err := http.NewRequest("GET", apiURL+"/myOffers/", bytes.NewBuffer([]byte("")))
 	if err != nil {
 		fmt.Println(err)
 		return nil
@@ -326,9 +316,9 @@ func getMyOffers(w http.ResponseWriter, r *http.Request) []Offer {
 	}
 	var allOffers []Offer
 	for _, co := range comOff {
-		offers := co.Offers 
+		offers := co.Offers
 		for _, o := range offers {
-			o.CommunityName = co.Name 
+			o.CommunityName = co.Name
 			o.CreatedAt = convertTime(o.CreatedAt)
 			allOffers = append([]Offer{o}, allOffers...)
 		}
@@ -350,7 +340,7 @@ func offerPagehandler(w http.ResponseWriter, r *http.Request) {
 	if comOff == nil {
 		fmt.Println("Error getting offers")
 		comOff = []Offer{}
-		comOff = append(comOff, Offer{Title: "No offers found" })
+		comOff = append(comOff, Offer{Title: "No offers found"})
 	}
 
 	err := offerPage(comOff).Render(r.Context(), w)
@@ -386,7 +376,7 @@ func handleJoinCommunity(w http.ResponseWriter, r *http.Request) {
 		"user_token":   token.Value,
 	}
 	encodedPayload := map2json(payload)
-	req, err := http.NewRequest("POST", apiURL + "/joinCommunity", bytes.NewBuffer(encodedPayload))
+	req, err := http.NewRequest("POST", apiURL+"/joinCommunity", bytes.NewBuffer(encodedPayload))
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/joinCommunity", http.StatusTemporaryRedirect)
@@ -411,8 +401,6 @@ func handleJoinCommunity(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
 }
 
-
-
 func handleCreateCommunity(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
 	if err != nil {
@@ -433,7 +421,7 @@ func handleCreateCommunity(w http.ResponseWriter, r *http.Request) {
 		"city":    r.Form.Get("city"),
 	}
 	encodedPayload := map2json(payload)
-	req, err := http.NewRequest("POST", apiURL + "/createCommunity", bytes.NewBuffer(encodedPayload))
+	req, err := http.NewRequest("POST", apiURL+"/createCommunity", bytes.NewBuffer(encodedPayload))
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/createCommunity", http.StatusTemporaryRedirect)
@@ -466,7 +454,7 @@ func getUserCommunities(w http.ResponseWriter, r *http.Request) []Community {
 		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 		return nil
 	}
-	req, err := http.NewRequest("GET", apiURL + "/userCommunities", bytes.NewBuffer([]byte("")))
+	req, err := http.NewRequest("GET", apiURL+"/userCommunities", bytes.NewBuffer([]byte("")))
 	if err != nil {
 		fmt.Println(err)
 		return nil
@@ -507,7 +495,7 @@ func getCommunities(w http.ResponseWriter, r *http.Request) ([]Community, string
 	}
 	country := r.Form.Get("country")
 	fmt.Println("Country: ", country)
-	req, err := http.NewRequest("GET", apiURL + "/communities/" + country, bytes.NewBuffer([]byte("")))
+	req, err := http.NewRequest("GET", apiURL+"/communities/"+country, bytes.NewBuffer([]byte("")))
 	if err != nil {
 		fmt.Println(err)
 		return nil, ""
@@ -572,7 +560,7 @@ func generateOffer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	id := r.URL.Query().Get("offerID")
-	req, err := http.NewRequest("GET", apiURL + "/offer/"+id, bytes.NewBuffer([]byte("")))
+	req, err := http.NewRequest("GET", apiURL+"/offer/"+id, bytes.NewBuffer([]byte("")))
 	if err != nil {
 		fmt.Println(err)
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
@@ -608,28 +596,28 @@ func generateOffer(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(id, offer)
 		http.NotFound(w, r)
 	}
-	
+
 }
 
 type Message struct {
-	Text     string
-	isMyMsg  bool
-	OfferID  int
+	Text    string
+	isMyMsg bool
+	OfferID int
 }
 
 type MessageFromServer struct {
-	Text       string
-	SenderID   int 
-	ReciverID  int 
-	OfferID    int 
+	Text      string
+	SenderID  int
+	ReciverID int
+	OfferID   int
 }
 type User struct {
-	ID       int 
-	Username string 
+	ID       int
+	Username string
 }
 
 func getUser(w http.ResponseWriter, r *http.Request, id string, client *http.Client) (User, error) {
-	req, err := http.NewRequest("GET", apiURL + "/user/"+id, bytes.NewBuffer([]byte("")))
+	req, err := http.NewRequest("GET", apiURL+"/user/"+id, bytes.NewBuffer([]byte("")))
 	if err != nil {
 		return User{}, err
 	}
@@ -640,19 +628,19 @@ func getUser(w http.ResponseWriter, r *http.Request, id string, client *http.Cli
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
-		return User{}, fmt.Errorf("Error: %v", resp.Status)
+		return User{}, fmt.Errorf("error: %v", resp.Status)
 	}
 	var user User
 	err = json.NewDecoder(resp.Body).Decode(&user)
 	if err != nil {
-		return User{}, err 
+		return User{}, err
 	}
 	return user, nil
 }
 
 func renderInboxOptions(w http.ResponseWriter, r *http.Request) {
 	err := r.ParseForm()
-	if err != nil { 
+	if err != nil {
 		fmt.Println(err)
 		http.NotFound(w, r)
 	}
@@ -684,7 +672,7 @@ func renderInboxOptions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", apiURL + "/offerResp/"+offerID, bytes.NewBuffer([]byte("")))
+	req, err := http.NewRequest("GET", apiURL+"/offerResp/"+offerID, bytes.NewBuffer([]byte("")))
 	if err != nil {
 		fmt.Println(err)
 		http.NotFound(w, r)
@@ -724,8 +712,8 @@ func renderInboxOptions(w http.ResponseWriter, r *http.Request) {
 			http.NotFound(w, r)
 			return
 		}
-	}else {
-	err = selectChatBox(users).Render(r.Context(), w)
+	} else {
+		err = selectChatBox(users).Render(r.Context(), w)
 	}
 	if err != nil {
 		fmt.Println(err)
@@ -752,7 +740,7 @@ func renderMessageBox(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/login", http.StatusTemporaryRedirect)
 		return
 	}
-	req, err := http.NewRequest("GET", apiURL + "/messages", bytes.NewBuffer([]byte("")))
+	req, err := http.NewRequest("GET", apiURL+"/messages", bytes.NewBuffer([]byte("")))
 	if err != nil {
 		fmt.Println(err)
 		http.NotFound(w, r)
@@ -782,24 +770,24 @@ func renderMessageBox(w http.ResponseWriter, r *http.Request) {
 	}
 	var relevantMessages []Message
 	for _, m := range messages {
-		if fmt.Sprint(m.OfferID) == offerID && 
-		(fmt.Sprint(m.SenderID) == otherUserID || fmt.Sprint(m.ReciverID) == otherUserID) {
+		if fmt.Sprint(m.OfferID) == offerID &&
+			(fmt.Sprint(m.SenderID) == otherUserID || fmt.Sprint(m.ReciverID) == otherUserID) {
 			msg := Message{Text: m.Text, OfferID: m.OfferID}
 			msgSenderID := fmt.Sprint(m.SenderID)
 			if msgSenderID == otherUserID {
 				msg.isMyMsg = false
 			} else {
-				msg.isMyMsg = true 
+				msg.isMyMsg = true
 			}
 			relevantMessages = append(relevantMessages, msg)
 		}
-		
+
 	}
 	err = chatBox(relevantMessages).Render(r.Context(), w)
 	if err != nil {
 		fmt.Println(err)
 		http.NotFound(w, r)
-	
+
 	}
 }
 func handelSendMessage(w http.ResponseWriter, r *http.Request) {
@@ -816,14 +804,14 @@ func handelSendMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	offerID := r.Form.Get("offerID")
-	
+
 	payload := map[string]string{
 		"text":       r.Form.Get("message"),
 		"reciver_id": r.Form.Get("otherUserID"),
 		"offer_id":   offerID,
 	}
 	encodedPayload := map2json(payload)
-	req, err := http.NewRequest("POST", apiURL + "/messages", bytes.NewBuffer(encodedPayload))
+	req, err := http.NewRequest("POST", apiURL+"/messages", bytes.NewBuffer(encodedPayload))
 	if err != nil {
 		fmt.Println(err)
 		http.NotFound(w, r)
@@ -849,7 +837,6 @@ func handelSendMessage(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/chatBox?offerID="+offerID, http.StatusPermanentRedirect)
 }
 
-
 func main() {
 	http.HandleFunc("/", offerPagehandler)
 	http.Handle("/signup", templ.Handler(userSignupPage()))
@@ -871,7 +858,7 @@ func main() {
 	http.HandleFunc("/offerInbox", renderInboxOptions)
 	ip := "127.0.0.1"
 	fmt.Printf("Server running on: %v:8080\n", ip)
-	err := http.ListenAndServe(ip + ":8080", nil)
+	err := http.ListenAndServe(ip+":8080", nil)
 	if err != nil {
 		fmt.Println(err)
 	}
