@@ -228,10 +228,12 @@ func CreateImage(db *gorm.DB) gin.HandlerFunc {
 			return
 		}
 
-		timeString := time.Now().String()
+		time := time.Now().Second()
+		timeString := strconv.Itoa(time)
 		filename := timeString + image.Filename
 		imgFile, err := os.Create(filepath.Join("./images", filename))
 		if err != nil {
+			fmt.Printf("error creating file: %v\n", err)
 			c.JSON(408, gin.H{"error": err.Error()})
 			return
 		}
