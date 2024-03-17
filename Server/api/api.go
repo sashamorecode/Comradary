@@ -240,8 +240,12 @@ func CreateImage(db *gorm.DB) gin.HandlerFunc {
 		defer imgFile.Close()
 		err = jpeg.Encode(imgFile, img, nil)
 		if err != nil {
-			c.JSON(409, gin.H{"error": err.Error()})
-			return
+			err = png.Encode(imgFile, img)
+			if err != nil {
+				fmt.Printf("error encoding image: %v\n", err)
+				c.JSON(409, gin.H{"error": err.Error()})
+				return
+			}
 		}
 		photo := Photo{Path: filename, UserID: uint(userID)}
 		result := db.Create(&photo)

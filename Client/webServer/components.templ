@@ -344,7 +344,7 @@ css messagesContainer() {
 
 templ chatBox(messages []Message) {
 	<div id="chatBox" hx-get="/chatBox" hx-include="#offerID, #posterID, #otherUserID"
-	hx-swap="outerHTML" hx-trigger="every 10s, change from:#otherUserID" 
+	hx-swap="outerHTML" hx-trigger="every 5s, change from:#otherUserID" 
 	class={messagesContainer()}>
 	for i, message := range messages {
 		if message.isMyMsg {

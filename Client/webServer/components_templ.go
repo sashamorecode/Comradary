@@ -1163,7 +1163,7 @@ func chatBox(messages []Message) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"chatBox\" hx-get=\"/chatBox\" hx-include=\"#offerID, #posterID, #otherUserID\" hx-swap=\"outerHTML\" hx-trigger=\"every 10s, change from:#otherUserID\" class=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<div id=\"chatBox\" hx-get=\"/chatBox\" hx-include=\"#offerID, #posterID, #otherUserID\" hx-swap=\"outerHTML\" hx-trigger=\"every 5s, change from:#otherUserID\" class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
