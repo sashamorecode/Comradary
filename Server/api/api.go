@@ -957,7 +957,7 @@ func (user User) isIn(users []User) bool {
 
 func DropAllTables(db *gorm.DB) {
 	log.Println("Droping all tables")
-	err := db.Migrator().DropTable(&User{}, &Photo{}, &Offer{}, &Request{}, &Community{})
+	err := db.Migrator().DropTable(&User{}, &Photo{}, &Offer{}, &Request{}, &Community{}, &Message{})
 	if err != nil {
 		log.Fatal("Error Dropping the tables: ", err)
 	}
