@@ -169,6 +169,7 @@ func createOfferPage() templ.Component {
 func background() templ.CSSClass {
 	var templ_7745c5c3_CSSBuilder strings.Builder
 	templ_7745c5c3_CSSBuilder.WriteString(`background:#50298c;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`color:#ffffff;`)
 	templ_7745c5c3_CSSID := templ.CSSID(`background`, templ_7745c5c3_CSSBuilder.String())
 	return templ.ComponentCSSClass{
 		ID:    templ_7745c5c3_CSSID,
@@ -585,7 +586,7 @@ func offerPage(offers []Offer) templ.Component {
 				var templ_7745c5c3_Var23 string
 				templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(offer.Title)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 194, Col: 37}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 195, Col: 37}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 				if templ_7745c5c3_Err != nil {
@@ -615,7 +616,7 @@ func offerPage(offers []Offer) templ.Component {
 				var templ_7745c5c3_Var25 string
 				templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(offer.CommunityName)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 195, Col: 64}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 196, Col: 64}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 				if templ_7745c5c3_Err != nil {
@@ -646,7 +647,7 @@ func offerPage(offers []Offer) templ.Component {
 				templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(
 					offer.CreatedAt)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 197, Col: 20}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 198, Col: 20}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 				if templ_7745c5c3_Err != nil {
@@ -703,7 +704,7 @@ func offerPage(offers []Offer) templ.Component {
 				var templ_7745c5c3_Var31 string
 				templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(offer.Description)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 205, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 206, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 				if templ_7745c5c3_Err != nil {
@@ -798,7 +799,7 @@ func communityOptions(communities []Community) templ.Component {
 			var templ_7745c5c3_Var34 string
 			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(community.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 224, Col: 79}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 225, Col: 79}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 			if templ_7745c5c3_Err != nil {
@@ -919,7 +920,8 @@ func chatContainer() templ.CSSClass {
 	templ_7745c5c3_CSSBuilder.WriteString(`background-color:#764abc;`)
 	templ_7745c5c3_CSSBuilder.WriteString(`border-radius:0.4em;`)
 	templ_7745c5c3_CSSBuilder.WriteString(`padding:0.5em;`)
-	templ_7745c5c3_CSSBuilder.WriteString(`margin:0.5em;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`margin-left:1.5em;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`width:25%;`)
 	templ_7745c5c3_CSSBuilder.WriteString(`display:flex;`)
 	templ_7745c5c3_CSSBuilder.WriteString(`flex-direction:column;`)
 	templ_7745c5c3_CSSBuilder.WriteString(`height:70vh;`)
@@ -967,7 +969,8 @@ func messageInput() templ.CSSClass {
 	templ_7745c5c3_CSSBuilder.WriteString(`border-radius:0.4em;`)
 	templ_7745c5c3_CSSBuilder.WriteString(`padding:0.5em;`)
 	templ_7745c5c3_CSSBuilder.WriteString(`margin:0.5em;`)
-	templ_7745c5c3_CSSBuilder.WriteString(`width:50%;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`width:93%;`)
+	templ_7745c5c3_CSSBuilder.WriteString(`height:10vh;`)
 	templ_7745c5c3_CSSID := templ.CSSID(`messageInput`, templ_7745c5c3_CSSBuilder.String())
 	return templ.ComponentCSSClass{
 		ID:    templ_7745c5c3_CSSID,
@@ -1001,7 +1004,7 @@ func viewOfferPage(offer Offer) templ.Component {
 			var templ_7745c5c3_Var41 string
 			templ_7745c5c3_Var41, templ_7745c5c3_Err = templ.JoinStringErrs(offer.Title)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 303, Col: 14}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 307, Col: 14}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var41))
 			if templ_7745c5c3_Err != nil {
@@ -1014,7 +1017,7 @@ func viewOfferPage(offer Offer) templ.Component {
 			var templ_7745c5c3_Var42 string
 			templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(offer.Description)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 305, Col: 20}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 309, Col: 20}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 			if templ_7745c5c3_Err != nil {
@@ -1027,7 +1030,7 @@ func viewOfferPage(offer Offer) templ.Component {
 			var templ_7745c5c3_Var43 string
 			templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(offer.CommunityName)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 306, Col: 36}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 310, Col: 36}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 			if templ_7745c5c3_Err != nil {
@@ -1040,7 +1043,7 @@ func viewOfferPage(offer Offer) templ.Component {
 			var templ_7745c5c3_Var44 string
 			templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(offer.CreatedAt)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 307, Col: 32}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 311, Col: 32}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 			if templ_7745c5c3_Err != nil {
@@ -1051,9 +1054,9 @@ func viewOfferPage(offer Offer) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var45 string
-			templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(offer.UserID))
+			templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(offer.User)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 308, Col: 43}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 312, Col: 27}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 			if templ_7745c5c3_Err != nil {
@@ -1094,7 +1097,24 @@ func viewOfferPage(offer Offer) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><div id=\"selectChatBox\" hx-get=\"/offerInbox\" hx-swap=\"outerHTML\" hx-trigger=\"load\" hx-include=\"#offerID, #posterID\"></div><form hx-post=\"/handelSendMessage\" hx-include=\"#offerID, #posterID, #otherUserID\" hx-swap=\"outerHTML\" hx-trigger=\"submit\" hx-target=\"#chatBox\" id=\"chatForm\"><textarea name=\"message\" placeholder=\"Message\" required style=\"width: 30em; height: 10em;\" class=\"messageInput\"></textarea> <input type=\"submit\" value=\"Send\"></form></div><input type=\"hidden\" id=\"offerID\" name=\"offerID\" value=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><div id=\"selectChatBox\" hx-get=\"/offerInbox\" hx-swap=\"outerHTML\" hx-trigger=\"load\" hx-include=\"#offerID, #posterID\"></div><form hx-post=\"/handelSendMessage\" hx-include=\"#offerID, #posterID, #otherUserID\" hx-swap=\"outerHTML\" hx-trigger=\"submit, keydown[keyCode==13]\" hx-target=\"#chatBox\" id=\"chatForm\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var47 = []any{messageInput()}
+			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var47...)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<textarea name=\"message\" placeholder=\"Message\" required class=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var47).String()))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" autocomplete=\"off\"></textarea> <input type=\"submit\" value=\"Send\" style=\"margin: 0.5em;\"></form></div><input type=\"hidden\" id=\"offerID\" name=\"offerID\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1153,13 +1173,13 @@ func chatBox(messages []Message) templ.Component {
 			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var47 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var47 == nil {
-			templ_7745c5c3_Var47 = templ.NopComponent
+		templ_7745c5c3_Var48 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var48 == nil {
+			templ_7745c5c3_Var48 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var templ_7745c5c3_Var48 = []any{messagesContainer()}
-		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var48...)
+		var templ_7745c5c3_Var49 = []any{messagesContainer()}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var49...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1167,7 +1187,7 @@ func chatBox(messages []Message) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var48).String()))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var49).String()))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1181,8 +1201,8 @@ func chatBox(messages []Message) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var49 = []any{sentMsg()}
-				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var49...)
+				var templ_7745c5c3_Var50 = []any{sentMsg()}
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var50...)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1198,7 +1218,7 @@ func chatBox(messages []Message) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var49).String()))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var50).String()))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1206,12 +1226,12 @@ func chatBox(messages []Message) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var50 string
-				templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.JoinStringErrs(message.Text)
+				var templ_7745c5c3_Var51 string
+				templ_7745c5c3_Var51, templ_7745c5c3_Err = templ.JoinStringErrs(message.Text)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 352, Col: 34}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 355, Col: 34}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var50))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var51))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1224,8 +1244,8 @@ func chatBox(messages []Message) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var51 = []any{recivedMsg()}
-				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var51...)
+				var templ_7745c5c3_Var52 = []any{recivedMsg()}
+				templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var52...)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1241,7 +1261,7 @@ func chatBox(messages []Message) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var51).String()))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var52).String()))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1249,12 +1269,12 @@ func chatBox(messages []Message) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				var templ_7745c5c3_Var52 string
-				templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(message.Text)
+				var templ_7745c5c3_Var53 string
+				templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(message.Text)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 357, Col: 37}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 360, Col: 37}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -1283,9 +1303,9 @@ func selectChatBox(users []User) templ.Component {
 			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var53 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var53 == nil {
-			templ_7745c5c3_Var53 = templ.NopComponent
+		templ_7745c5c3_Var54 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var54 == nil {
+			templ_7745c5c3_Var54 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<select name=\"otherUserID\" id=\"otherUserID\">")
@@ -1305,12 +1325,12 @@ func selectChatBox(users []User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var54 string
-			templ_7745c5c3_Var54, templ_7745c5c3_Err = templ.JoinStringErrs(user.Username)
+			var templ_7745c5c3_Var55 string
+			templ_7745c5c3_Var55, templ_7745c5c3_Err = templ.JoinStringErrs(user.Username)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 369, Col: 55}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `components.templ`, Line: 372, Col: 55}
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var54))
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var55))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1338,17 +1358,17 @@ func basePage() templ.Component {
 			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var55 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var55 == nil {
-			templ_7745c5c3_Var55 = templ.NopComponent
+		templ_7745c5c3_Var56 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var56 == nil {
+			templ_7745c5c3_Var56 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html><head><script src=\"https://unpkg.com/htmx.org@1.9.10\"></script><title>Comradary</title></head>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var56 = []any{background()}
-		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var56...)
+		var templ_7745c5c3_Var57 = []any{background()}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var57...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1356,7 +1376,7 @@ func basePage() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var56).String()))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ.CSSClasses(templ_7745c5c3_Var57).String()))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1364,7 +1384,7 @@ func basePage() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templ_7745c5c3_Var55.Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = templ_7745c5c3_Var56.Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1391,9 +1411,9 @@ func selectCountry() templ.Component {
 			defer templ.ReleaseBuffer(templ_7745c5c3_Buffer)
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var57 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var57 == nil {
-			templ_7745c5c3_Var57 = templ.NopComponent
+		templ_7745c5c3_Var58 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var58 == nil {
+			templ_7745c5c3_Var58 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<select class=\"form-select\" id=\"country\" name=\"country\"><option value=\"ALL\">All Countries </option> <option value=\"AF\">Afghanistan</option> <option value=\"AX\">Aland Islands</option> <option value=\"AL\">Albania</option> <option value=\"DZ\">Algeria</option> <option value=\"AS\">American Samoa</option> <option value=\"AD\">Andorra</option> <option value=\"AO\">Angola</option> <option value=\"AI\">Anguilla</option> <option value=\"AQ\">Antarctica</option> <option value=\"AG\">Antigua and Barbuda</option> <option value=\"AR\">Argentina</option> <option value=\"AM\">Armenia</option> <option value=\"AW\">Aruba</option> <option value=\"AU\">Australia</option> <option value=\"AT\">Austria</option> <option value=\"AZ\">Azerbaijan</option> <option value=\"BS\">Bahamas</option> <option value=\"BH\">Bahrain</option> <option value=\"BD\">Bangladesh</option> <option value=\"BB\">Barbados</option> <option value=\"BY\">Belarus</option> <option value=\"BE\">Belgium</option> <option value=\"BZ\">Belize</option> <option value=\"BJ\">Benin</option> <option value=\"BM\">Bermuda</option> <option value=\"BT\">Bhutan</option> <option value=\"BO\">Bolivia</option> <option value=\"BQ\">Bonaire, Sint Eustatius and Saba</option> <option value=\"BA\">Bosnia and Herzegovina</option> <option value=\"BW\">Botswana</option> <option value=\"BV\">Bouvet Island</option> <option value=\"BR\">Brazil</option> <option value=\"IO\">British Indian Ocean Territory</option> <option value=\"BN\">Brunei Darussalam</option> <option value=\"BG\">Bulgaria</option> <option value=\"BF\">Burkina Faso</option> <option value=\"BI\">Burundi</option> <option value=\"KH\">Cambodia</option> <option value=\"CM\">Cameroon</option> <option value=\"CA\">Canada</option> <option value=\"CV\">Cape Verde</option> <option value=\"KY\">Cayman Islands</option> <option value=\"CF\">Central African Republic</option> <option value=\"TD\">Chad</option> <option value=\"CL\">Chile</option> <option value=\"CN\">China</option> <option value=\"CX\">Christmas Island</option> <option value=\"CC\">Cocos (Keeling) Islands</option> <option value=\"CO\">Colombia</option> <option value=\"KM\">Comoros</option> <option value=\"CG\">Congo</option> <option value=\"CD\">Congo, Democratic Republic of the Congo</option> <option value=\"CK\">Cook Islands</option> <option value=\"CR\">Costa Rica</option> <option value=\"CI\">Cote D'Ivoire</option> <option value=\"HR\">Croatia</option> <option value=\"CU\">Cuba</option> <option value=\"CW\">Curacao</option> <option value=\"CY\">Cyprus</option> <option value=\"CZ\">Czech Republic</option> <option value=\"DK\">Denmark</option> <option value=\"DJ\">Djibouti</option> <option value=\"DM\">Dominica</option> <option value=\"DO\">Dominican Republic</option> <option value=\"EC\">Ecuador</option> <option value=\"EG\">Egypt</option> <option value=\"SV\">El Salvador</option> <option value=\"GQ\">Equatorial Guinea</option> <option value=\"ER\">Eritrea</option> <option value=\"EE\">Estonia</option> <option value=\"ET\">Ethiopia</option> <option value=\"FK\">Falkland Islands (Malvinas)</option> <option value=\"FO\">Faroe Islands</option> <option value=\"FJ\">Fiji</option> <option value=\"FI\">Finland</option> <option value=\"FR\">France</option> <option value=\"GF\">French Guiana</option> <option value=\"PF\">French Polynesia</option> <option value=\"TF\">French Southern Territories</option> <option value=\"GA\">Gabon</option> <option value=\"GM\">Gambia</option> <option value=\"GE\">Georgia</option> <option value=\"DE\">Germany</option> <option value=\"GH\">Ghana</option> <option value=\"GI\">Gibraltar</option> <option value=\"GR\">Greece</option> <option value=\"GL\">Greenland</option> <option value=\"GD\">Grenada</option> <option value=\"GP\">Guadeloupe</option> <option value=\"GU\">Guam</option> <option value=\"GT\">Guatemala</option> <option value=\"GG\">Guernsey</option> <option value=\"GN\">Guinea</option> <option value=\"GW\">Guinea-Bissau</option> <option value=\"GY\">Guyana</option> <option value=\"HT\">Haiti</option> <option value=\"HM\">Heard Island and Mcdonald Islands</option> <option value=\"VA\">Holy See (Vatican City State)</option> <option value=\"HN\">Honduras</option> <option value=\"HK\">Hong Kong</option> <option value=\"HU\">Hungary</option> <option value=\"IS\">Iceland</option> <option value=\"IN\">India</option> <option value=\"ID\">Indonesia</option> <option value=\"IR\">Iran, Islamic Republic of</option> <option value=\"IQ\">Iraq</option> <option value=\"IE\">Ireland</option> <option value=\"IM\">Isle of Man</option> <option value=\"IL\">Israel</option> <option value=\"IT\">Italy</option> <option value=\"JM\">Jamaica</option> <option value=\"JP\">Japan</option> <option value=\"JE\">Jersey</option> <option value=\"JO\">Jordan</option> <option value=\"KZ\">Kazakhstan</option> <option value=\"KE\">Kenya</option> <option value=\"KI\">Kiribati</option> <option value=\"KP\">Korea, Democratic People's Republic of</option> <option value=\"KR\">Korea, Republic of</option> <option value=\"XK\">Kosovo</option> <option value=\"KW\">Kuwait</option> <option value=\"KG\">Kyrgyzstan</option> <option value=\"LA\">Lao People's Democratic Republic</option> <option value=\"LV\">Latvia</option> <option value=\"LB\">Lebanon</option> <option value=\"LS\">Lesotho</option> <option value=\"LR\">Liberia</option> <option value=\"LY\">Libyan Arab Jamahiriya</option> <option value=\"LI\">Liechtenstein</option> <option value=\"LT\">Lithuania</option> <option value=\"LU\">Luxembourg</option> <option value=\"MO\">Macao</option> <option value=\"MK\">Macedonia, the Former Yugoslav Republic of</option> <option value=\"MG\">Madagascar</option> <option value=\"MW\">Malawi</option> <option value=\"MY\">Malaysia</option> <option value=\"MV\">Maldives</option> <option value=\"ML\">Mali</option> <option value=\"MT\">Malta</option> <option value=\"MH\">Marshall Islands</option> <option value=\"MQ\">Martinique</option> <option value=\"MR\">Mauritania</option> <option value=\"MU\">Mauritius</option> <option value=\"YT\">Mayotte</option> <option value=\"MX\">Mexico</option> <option value=\"FM\">Micronesia, Federated States of</option> <option value=\"MD\">Moldova, Republic of</option> <option value=\"MC\">Monaco</option> <option value=\"MN\">Mongolia</option> <option value=\"ME\">Montenegro</option> <option value=\"MS\">Montserrat</option> <option value=\"MA\">Morocco</option> <option value=\"MZ\">Mozambique</option> <option value=\"MM\">Myanmar</option> <option value=\"NA\">Namibia</option> <option value=\"NR\">Nauru</option> <option value=\"NP\">Nepal</option> <option value=\"NL\">Netherlands</option> <option value=\"AN\">Netherlands Antilles</option> <option value=\"NC\">New Caledonia</option> <option value=\"NZ\">New Zealand</option> <option value=\"NI\">Nicaragua</option> <option value=\"NE\">Niger</option> <option value=\"NG\">Nigeria</option> <option value=\"NU\">Niue</option> <option value=\"NF\">Norfolk Island</option> <option value=\"MP\">Northern Mariana Islands</option> <option value=\"NO\">Norway</option> <option value=\"OM\">Oman</option> <option value=\"PK\">Pakistan</option> <option value=\"PW\">Palau</option> <option value=\"PS\">Palestinian Territory, Occupied</option> <option value=\"PA\">Panama</option> <option value=\"PG\">Papua New Guinea</option> <option value=\"PY\">Paraguay</option> <option value=\"PE\">Peru</option> <option value=\"PH\">Philippines</option> <option value=\"PN\">Pitcairn</option> <option value=\"PL\">Poland</option> <option value=\"PT\">Portugal</option> <option value=\"PR\">Puerto Rico</option> <option value=\"QA\">Qatar</option> <option value=\"RE\">Reunion</option> <option value=\"RO\">Romania</option> <option value=\"RU\">Russian Federation</option> <option value=\"RW\">Rwanda</option> <option value=\"BL\">Saint Barthelemy</option> <option value=\"SH\">Saint Helena</option> <option value=\"KN\">Saint Kitts and Nevis</option> <option value=\"LC\">Saint Lucia</option> <option value=\"MF\">Saint Martin</option> <option value=\"PM\">Saint Pierre and Miquelon</option> <option value=\"VC\">Saint Vincent and the Grenadines</option> <option value=\"WS\">Samoa</option> <option value=\"SM\">San Marino</option> <option value=\"ST\">Sao Tome and Principe</option> <option value=\"SA\">Saudi Arabia</option> <option value=\"SN\">Senegal</option> <option value=\"RS\">Serbia</option> <option value=\"CS\">Serbia and Montenegro</option> <option value=\"SC\">Seychelles</option> <option value=\"SL\">Sierra Leone</option> <option value=\"SG\">Singapore</option> <option value=\"SX\">Sint Maarten</option> <option value=\"SK\">Slovakia</option> <option value=\"SI\">Slovenia</option> <option value=\"SB\">Solomon Islands</option> <option value=\"SO\">Somalia</option> <option value=\"ZA\">South Africa</option> <option value=\"GS\">South Georgia and the South Sandwich Islands</option> <option value=\"SS\">South Sudan</option> <option value=\"ES\">Spain</option> <option value=\"LK\">Sri Lanka</option> <option value=\"SD\">Sudan</option> <option value=\"SR\">Suriname</option> <option value=\"SJ\">Svalbard and Jan Mayen</option> <option value=\"SZ\">Swaziland</option> <option value=\"SE\">Sweden</option> <option value=\"CH\">Switzerland</option> <option value=\"SY\">Syrian Arab Republic</option> <option value=\"TW\">Taiwan, Province of China</option> <option value=\"TJ\">Tajikistan</option> <option value=\"TZ\">Tanzania, United Republic of</option> <option value=\"TH\">Thailand</option> <option value=\"TL\">Timor-Leste</option> <option value=\"TG\">Togo</option> <option value=\"TK\">Tokelau</option> <option value=\"TO\">Tonga</option> <option value=\"TT\">Trinidad and Tobago</option> <option value=\"TN\">Tunisia</option> <option value=\"TR\">Turkey</option> <option value=\"TM\">Turkmenistan</option> <option value=\"TC\">Turks and Caicos Islands</option> <option value=\"TV\">Tuvalu</option> <option value=\"UG\">Uganda</option> <option value=\"UA\">Ukraine</option> <option value=\"AE\">United Arab Emirates</option> <option value=\"GB\">United Kingdom</option> <option value=\"US\">United States</option> <option value=\"UM\">United States Minor Outlying Islands</option> <option value=\"UY\">Uruguay</option> <option value=\"UZ\">Uzbekistan</option> <option value=\"VU\">Vanuatu</option> <option value=\"VE\">Venezuela</option> <option value=\"VN\">Viet Nam</option> <option value=\"VG\">Virgin Islands, British</option> <option value=\"VI\">Virgin Islands, U.s.</option> <option value=\"WF\">Wallis and Futuna</option> <option value=\"EH\">Western Sahara</option> <option value=\"YE\">Yemen</option> <option value=\"ZM\">Zambia</option> <option value=\"ZW\">Zimbabwe</option></select>")

@@ -124,7 +124,7 @@ func SetupRoutes(db *gorm.DB, router *gin.Engine) {
 
 	router.POST("/messages", SendMesssage(db))
 	router.GET("/messages", GetMessages(db))
-	router.GET("/username/:id", GetUserById(db))
+	router.GET("/user/:id", GetUserById(db))
 	router.GET("/offerResp/:id", GetOfferResp(db))
 }
 

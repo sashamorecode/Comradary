@@ -72,6 +72,7 @@ templ createOfferPage() {
 
 css background() {
 	background: #50298c;
+	color: #ffffff;
 }
 
 css offerContainer() {
@@ -260,7 +261,8 @@ css chatContainer() {
 	background-color: #764abc;
 	border-radius: 0.4em;
 	padding: 0.5em;
-	margin: 0.5em;
+	margin-left: 1.5em;
+	width: 25%;
 	display: flex;
 	flex-direction: column;
 	height: 70vh;
@@ -290,8 +292,10 @@ css messageInput() {
 	border-radius: 0.4em;
 	padding: 0.5em;
 	margin: 0.5em;
-	width: 50%;
+	width: 93%;
+	height: 10vh;
 }
+
 
 
 templ viewOfferPage(offer Offer) {
@@ -306,7 +310,7 @@ templ viewOfferPage(offer Offer) {
 		{offer.Description}</p>
 		<p>Posted To: {offer.CommunityName}</p>
 		<p>Posted At: {offer.CreatedAt}</p>
-		<p>Posted By: {strconv.Itoa(offer.UserID)}</p>
+		<p>Posted By: {offer.User}</p>
 		for _, photo := range offer.Photos {
 			<img src={"http://127.0.0.1:8000/images/" +strconv.Itoa(photo.ID)}
 			style="border-radius: 0.4em; margin-top: 1em; max-width: 50vw; max-height: 50vh;"
@@ -318,12 +322,11 @@ templ viewOfferPage(offer Offer) {
 	<div id="selectChatBox" hx-get="/offerInbox" hx-swap="outerHTML" hx-trigger="load"
 	     hx-include="#offerID, #posterID"></div>
 	<form hx-post="/handelSendMessage" hx-include="#offerID, #posterID, #otherUserID"
-	      hx-swap="outerHTML" hx-trigger="submit" hx-target="#chatBox" id="chatForm">
+	      hx-swap="outerHTML" hx-trigger="submit, keydown[keyCode==13]" hx-target="#chatBox" id="chatForm">
 
-		<textarea name="message" placeholder="Message" required
-			style="width: 30em; height: 10em;" class="messageInput">
+		<textarea name="message" placeholder="Message" required class={messageInput()} autocomplete="off">
 		</textarea>
-		<input type="submit" value="Send"></input>
+		<input type="submit" value="Send" style="margin: 0.5em;"></input>
 	</form>
 	</div>
 	

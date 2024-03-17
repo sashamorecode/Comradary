@@ -590,6 +590,12 @@ func generateOffer(w http.ResponseWriter, r *http.Request) {
 	}
 	offer.CreatedAt = convertTime(offer.CreatedAt)
 	offer.CommunityName = r.URL.Query().Get("communityName")
+
+	user, err := getUser(strconv.Itoa(offer.UserID), client)
+	if err != nil {
+		fmt.Println("Error getting user: ", err)
+	}
+	offer.User = user.Username
 	err = viewOfferPage(offer).Render(r.Context(), w)
 	if err != nil {
 		fmt.Println(err)
@@ -616,7 +622,7 @@ type User struct {
 	Username string
 }
 
-func getUser(w http.ResponseWriter, r *http.Request, id string, client *http.Client) (User, error) {
+func getUser(id string, client *http.Client) (User, error) {
 	req, err := http.NewRequest("GET", apiURL+"/user/"+id, bytes.NewBuffer([]byte("")))
 	if err != nil {
 		return User{}, err
