@@ -1097,7 +1097,7 @@ func viewOfferPage(offer Offer) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><div id=\"selectChatBox\" hx-get=\"/offerInbox\" hx-swap=\"outerHTML\" hx-trigger=\"load\" hx-include=\"#offerID, #posterID\"></div><form hx-post=\"/handelSendMessage\" hx-include=\"#offerID, #posterID, #otherUserID\" hx-swap=\"outerHTML\" hx-trigger=\"submit, keydown[keyCode==13]\" hx-target=\"#chatBox\" id=\"chatForm\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\"><div id=\"selectChatBox\" hx-get=\"/offerInbox\" hx-swap=\"outerHTML\" hx-trigger=\"load\" hx-include=\"#offerID, #posterID\"></div><form hx-post=\"/handelSendMessage\" hx-include=\"#offerID, #posterID, #otherUserID\" hx-swap=\"outerHTML\" hx-trigger=\"submit, keyup[shiftKey] from:messageInputBox\" hx-target=\"#chatBox\" id=\"chatForm\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -1106,7 +1106,7 @@ func viewOfferPage(offer Offer) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<textarea name=\"message\" placeholder=\"Message\" required class=\"")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<textarea name=\"message\" id=\"messageInputBox\" placeholder=\"Message\" required class=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

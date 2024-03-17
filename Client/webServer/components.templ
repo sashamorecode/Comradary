@@ -322,9 +322,9 @@ templ viewOfferPage(offer Offer) {
 	<div id="selectChatBox" hx-get="/offerInbox" hx-swap="outerHTML" hx-trigger="load"
 	     hx-include="#offerID, #posterID"></div>
 	<form hx-post="/handelSendMessage" hx-include="#offerID, #posterID, #otherUserID"
-	      hx-swap="outerHTML" hx-trigger="submit, keydown[keyCode==13]" hx-target="#chatBox" id="chatForm">
+	      hx-swap="outerHTML" hx-trigger="submit, keyup[shiftKey] from:messageInputBox" hx-target="#chatBox" id="chatForm">
 
-		<textarea name="message" placeholder="Message" required class={messageInput()} autocomplete="off">
+		<textarea name="message" id="messageInputBox" placeholder="Message" required class={messageInput()} autocomplete="off">
 		</textarea>
 		<input type="submit" value="Send" style="margin: 0.5em;"></input>
 	</form>
